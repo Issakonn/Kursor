@@ -29,59 +29,59 @@ Frontend-архитектура
 Структура проекта
 kursor-platform/
 │
-├── server/ # Backend (Node.js / Express)
-│ ├── index.js # Точка входа: сервер, маршруты, статика
-│ ├── db.js # Подключение SQLite, создание таблиц, миграции
-│ ├── auth.js # JWT: signToken, verifyToken, middleware authRequired/requireRole
-│ ├── init-db.js # Первичный засев: admin-аккаунт, модули, задачи, уроки
-│ ├── routes-auth.js # /api/auth — логин, /me, смена пароля
-│ ├── routes-users.js # /api/users — CRUD пользователей, аватарки
-│ ├── routes-content.js # /api/modules, /api/tasks — CRUD контента
-│ ├── routes-progress.js # /api/progress — прогресс, рейтинг, попытки, завершение
-│ ├── routes-lessons.js # /api/lessons — уроки, прогресс intro/miniTask
-│ ├── ws.js # WebSocket-сервер, broadcastProgress
-│ └── db/ # Директория SQLite-файла (создаётся автоматически)
-│ └── kursor.sqlite
+├── server/                     # Backend (Node.js / Express)
+│   ├── index.js                # Точка входа: сервер, маршруты, статика
+│   ├── db.js                   # Подключение SQLite, создание таблиц, миграции
+│   ├── auth.js                 # JWT: signToken, verifyToken, middleware authRequired/requireRole
+│   ├── init-db.js              # Первичный засев: admin-аккаунт, модули, задачи, уроки
+│   ├── routes-auth.js          # /api/auth — логин, /me, смена пароля
+│   ├── routes-users.js         # /api/users — CRUD пользователей, аватарки
+│   ├── routes-content.js       # /api/modules, /api/tasks — CRUD контента
+│   ├── routes-progress.js      # /api/progress — прогресс, рейтинг, попытки, завершение
+│   ├── routes-lessons.js       # /api/lessons — уроки, прогресс intro/miniTask
+│   ├── ws.js                   # WebSocket-сервер, broadcastProgress
+│   └── db/                     # Директория SQLite-файла (создаётся автоматически)
+│       └── kursor.sqlite
 │
-├── public/ # Frontend (статика)
-│ ├── index.html # Страница входа (логин)
-│ ├── css/
-│ │ └── style.css # Единая таблица стилей всего проекта
-│ ├── js/
-│ │ ├── api.js # API-клиент: все запросы к серверу, JWT в localStorage
-│ │ └── app.js # Общие утилиты: navbar, toast, confetti, escapeHtml
-│ ├── pages/ # Страницы SPA
-│ │ ├── dashboard.html # Дашборд ученика
-│ │ ├── catalog.html # Каталог модулей и задач
-│ │ ├── task.html # Страница задачи
-│ │ ├── lesson.html # Страница урока (intro + miniTask)
-│ │ ├── profile.html # Профиль ученика
-│ │ ├── teacher.html # Панель учителя
-│ │ └── leaderboard.html # Рейтинг учеников
-│ ├── admin/
-│ │ └── index.html # Панель администратора (SPA)
-│ ├── data/
-│ │ └── database.js # Весь контент: модули, задачи, языки, группы
-│ └── uploads/
-│ ├── mascot/ # Изображения маскота (happy, sad, explain, thinking, sitting)
-│ └── avatars/ # Аватарки пользователей (создаётся автоматически)
+├── public/                     # Frontend (статика)
+│   ├── index.html              # Страница входа (логин)
+│   ├── css/
+│   │   └── style.css           # Единая таблица стилей всего проекта
+│   ├── js/
+│   │   ├── api.js              # API-клиент: все запросы к серверу, JWT в localStorage
+│   │   └── app.js              # Общие утилиты: navbar, toast, confetti, escapeHtml
+│   ├── pages/                  # Страницы SPA
+│   │   ├── dashboard.html      # Дашборд ученика
+│   │   ├── catalog.html        # Каталог модулей и задач
+│   │   ├── task.html           # Страница задачи
+│   │   ├── lesson.html         # Страница урока (intro + miniTask)
+│   │   ├── profile.html        # Профиль ученика
+│   │   ├── teacher.html        # Панель учителя
+│   │   └── leaderboard.html    # Рейтинг учеников
+│   ├── admin/
+│   │   └── index.html          # Панель администратора (SPA)
+│   ├── data/
+│   │   └── database.js         # Весь контент: модули, задачи, языки, группы
+│   └── uploads/
+│       ├── mascot/             # Изображения маскота (happy, sad, explain, thinking, sitting)
+│       └── avatars/            # Аватарки пользователей (создаётся автоматически)
 │
 ├── data/
-│ └── lessons/ # JSON-файлы уроков (загружаются при init-db)
-│ ├── _TEMPLATE.json # Шаблон урока — читай перед созданием нового
-│ ├── python-variables.json
-│ └── scratch-loops.json
+│   └── lessons/                # JSON-файлы уроков (загружаются при init-db)
+│       ├── _TEMPLATE.json      # Шаблон урока — читай перед созданием нового
+│       ├── python-variables.json
+│       └── scratch-loops.json
 │
 ├── package.json
-└──.env # Создать вручную (см. раздел ниже)
+└── .env                        # Создать вручную (см. раздел ниже)
 
 Быстрый старт
 Требования: Node.js 20+
 bash# 1. Установить зависимости
 npm install
 
-# 2. Создать.env (или пропустить — используются дефолты)
-cp.env.example.env # если есть, иначе создай вручную
+# 2. Создать .env (или пропустить — используются дефолты)
+cp .env.example .env   # если есть, иначе создай вручную
 
 # 3. Запустить сервер
 npm start
@@ -97,7 +97,7 @@ WebSocket: ws://localhost:3000/ws
 При первом запуске автоматически создаётся администратор с логином admin / паролем admin. Смени пароль после первого входа.
 
 Переменные окружения
-Создай файл.env в корне проекта:
+Создай файл .env в корне проекта:
 env# Обязательно для продакшена
 JWT_SECRET=замени-на-длинный-случайный-секрет-минимум-32-символа
 
@@ -155,12 +155,12 @@ WebSocket
 json{ "type": "hello", "userId": "...", "role": "student" }
 При каждом изменении прогресса ученика сервер рассылает всем заинтересованным (самому ученику + его учителю + всем админам):
 json{
- "type": "progress",
- "studentId": "u_...",
- "progress": {... },
- "t": 1234567890
+  "type": "progress",
+  "studentId": "u_...",
+  "progress": { ... },
+  "t": 1234567890
 }
-Клиент может слать { "type": "ping" } — сервер ответит { "type": "pong", "t":... }.
+Клиент может слать { "type": "ping" } — сервер ответит { "type": "pong", "t": ... }.
 
 Роли и права доступа
 РольМожетadminВсё: CRUD пользователей, модулей, задач; видит весь прогрессteacherСоздавать/редактировать модули и задачи; видеть учеников своей группыstudentПроходить уроки и задачи; видеть свой прогресс и рейтинг
@@ -169,9 +169,9 @@ json{
 Система уроков
 Каждый урок привязан к модулю и состоит из трёх частей:
 Урок
- ├── intro[] — 2–4 экрана «Далее» с теорией (HTML, видео, код)
- ├── miniTask — одна короткая задача для проверки понимания
- └── tasks[] — ссылки на задачи из таблицы tasks этого модуля
+ ├── intro[]          — 2–4 экрана «Далее» с теорией (HTML, видео, код)
+ ├── miniTask         — одна короткая задача для проверки понимания
+ └── tasks[]          — ссылки на задачи из таблицы tasks этого модуля
 Прогресс урока хранится в lesson_progress:
 
 intro_step — номер последнего просмотренного экрана
@@ -184,11 +184,11 @@ mini_done — мини-задача решена (булево)
 Типы задач
 ТипОписаниеПоляquizТест с одним правильным ответомoptions[], answer (индекс)fillВписать пропущенное словоanswer (строка, регистронезависимо)orderРасставить элементы в правильный порядокitems[]codeНаписать код с ожидаемым выводомstarter, expectedOutputprojectПроектное задание (свободный ответ)description
 Начисление очков
-quiz → 10 базовых очков
-fill → 15
-order → 20
-code → 25
-project → 50
+quiz     → 10 базовых очков
+fill     → 15
+order    → 20
+code     → 25
+project  → 50
 
 + 5 бонусных очков, если задача решена без подсказки
 Задача засчитывается один раз. Повторные попытки увеличивают счётчик attempts, но очки не начисляются повторно.
@@ -207,11 +207,11 @@ api.js — API-клиент
 Единый объект window.API, доступный на всех страницах. Хранит JWT в localStorage под ключом kursor_jwt, кэш текущего пользователя — под kursor_user_cache.
 При получении 401 с сервера автоматически очищает токен и редиректит на /index.html.
 Основные методы:
-javascriptAPI.login(login, password) // → user
+javascriptAPI.login(login, password)         // → user
 API.logout()
-API.getCurrentUser() // синхронно, из localStorage
-API.refreshCurrentUser() // → user (свежие данные с сервера)
-API.requireAuth(['student']) // редирект если нет прав, иначе возвращает user
+API.getCurrentUser()               // синхронно, из localStorage
+API.refreshCurrentUser()           // → user (свежие данные с сервера)
+API.requireAuth(['student'])       // редирект если нет прав, иначе возвращает user
 
 API.getModules()
 API.getTasks()
@@ -219,14 +219,14 @@ API.getMyProgress()
 API.recordAttempt(taskId)
 API.recordComplete(taskId, points, usedHint, submission)
 
-API.connectWS(onMessage) // WebSocket с авто-авторизацией
+API.connectWS(onMessage)           // WebSocket с авто-авторизацией
 app.js — общие утилиты
-javascriptrenderNavbar(activePage) // HTML навбара с учётом роли
-showToast(msg, type) // всплывающее уведомление ('success'|'error'|'info')
-fireConfetti() // конфетти при правильном ответе
-escapeHtml(str) // экранирование XSS
-getQueryParam(name) //?name=value из URL
-logout() // очистить токен и уйти на /index.html
+javascriptrenderNavbar(activePage)   // HTML навбара с учётом роли
+showToast(msg, type)       // всплывающее уведомление ('success'|'error'|'info')
+fireConfetti()             // конфетти при правильном ответе
+escapeHtml(str)            // экранирование XSS
+getQueryParam(name)        // ?name=value из URL
+logout()                   // очистить токен и уйти на /index.html
 Редиректы по роли
 После логина пользователь автоматически попадает на нужную страницу:
 РольСтраницаadmin/admin/index.htmlteacher/pages/teacher.htmlstudent/pages/dashboard.html
@@ -257,32 +257,32 @@ JSON-файлы уроков. Формат — см. data/lessons/_TEMPLATE.json
 Скопируй data/lessons/_TEMPLATE.json, заполни поля, положи в data/lessons/. Урок загрузится при следующем старте на чистой БД. Чтобы загрузить в уже существующую БД, используй API:
 bash# Пример: загрузить урок через API (нужен токен администратора)
 curl -X POST http://localhost:3000/api/lessons/python_variables \
- -H "Authorization: Bearer TOKEN" \
- -H "Content-Type: application/json" \
- -d @data/lessons/python-variables.json
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @data/lessons/python-variables.json
 Структура урока (JSON)
 json{
- "moduleId": "python_variables",
- "lang": "python",
- "title": "Переменные",
- "description": "Что такое переменная и как её создать",
- "intro": [
- {
- "title": "Что такое переменная?",
- "emoji": "",
- "body": "<p>Переменная — это <b>ящик</b> для хранения данных.</p>",
- "code": "x = 5\nprint(x)"
- }
- ],
- "miniTask": {
- "type": "quiz",
- "title": "Проверь себя",
- "description": "Как записать переменную x равную 10?",
- "options": ["x == 10", "x = 10", "let x = 10", "var x = 10"],
- "answer": 1,
- "explain": "В Python переменная объявляется просто: x = 10",
- "points": 5
- }
+  "moduleId": "python_variables",
+  "lang": "python",
+  "title": "Переменные",
+  "description": "Что такое переменная и как её создать",
+  "intro": [
+    {
+      "title": "Что такое переменная?",
+      "emoji": "📦",
+      "body": "<p>Переменная — это <b>ящик</b> для хранения данных.</p>",
+      "code": "x = 5\nprint(x)"
+    }
+  ],
+  "miniTask": {
+    "type": "quiz",
+    "title": "Проверь себя",
+    "description": "Как записать переменную x равную 10?",
+    "options": ["x == 10", "x = 10", "let x = 10", "var x = 10"],
+    "answer": 1,
+    "explain": "В Python переменная объявляется просто: x = 10",
+    "points": 5
+  }
 }
 Поле intro[].code отображается в блоке с подсветкой синтаксиса. Поле intro[].video принимает ссылку формата https://www.youtube.com/embed/VIDEO_ID.
 
@@ -303,9 +303,9 @@ bash# 1. Установить Node.js 20
 # 3. Установить зависимости
 npm install --production
 
-# 4. Создать.env с настоящим JWT_SECRET
-echo "JWT_SECRET=$(openssl rand -hex 32)" >>.env
-echo "PORT=3000" >>.env
+# 4. Создать .env с настоящим JWT_SECRET
+echo "JWT_SECRET=$(openssl rand -hex 32)" >> .env
+echo "PORT=3000" >> .env
 
 # 5. Запустить
 node server/index.js
@@ -316,20 +316,20 @@ pm2 save
 pm2 startup
 Reverse proxy (Nginx)
 nginxserver {
- listen 80;
- server_name example.com;
+    listen 80;
+    server_name example.com;
 
- location / {
- proxy_pass http://localhost:3000;
- proxy_http_version 1.1;
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
 
- # Обязательно для WebSocket
- proxy_set_header Upgrade $http_upgrade;
- proxy_set_header Connection "upgrade";
+        # Обязательно для WebSocket
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
 
- proxy_set_header Host $host;
- proxy_set_header X-Real-IP $remote_addr;
- }
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
 }
 
 WebSocket (/ws) работает через тот же порт, что и HTTP. При использовании Nginx обязательны заголовки Upgrade и Connection.
@@ -345,7 +345,7 @@ sqlite3 server/db/kursor.sqlite ".backup backup.sqlite"
 Как сбросить базу данных?
 Удали файл server/db/kursor.sqlite. При следующем запуске БД и контент будут воссозданы из database.js и data/lessons/.
 Как изменить дефолтный пароль администратора?
-Войди под admin / admin, открой профиль и смени пароль через форму. Или задай переменные SEED_ADMIN_LOGIN / SEED_ADMIN_PASSWORD в.env до первого запуска.
+Войди под admin / admin, открой профиль и смени пароль через форму. Или задай переменные SEED_ADMIN_LOGIN / SEED_ADMIN_PASSWORD в .env до первого запуска.
 Можно ли добавить новый тип задачи?
 Да. Добавь значение в CHECK(type IN (...)) в db.js, обработай его в routes-progress.js (логика начисления очков) и в нужных HTML-страницах.
 Где хранится токен на клиенте?

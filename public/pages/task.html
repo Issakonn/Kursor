@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <title>Задача — КУРСОР</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="https://salamalekum.sirv.com/_1_1.png.webp"><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet"><link rel="stylesheet" href="/css/style.css"></head>
+<link rel="icon" href="/uploads/mascot/happy.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
 <body>
 <div id="nav"></div>
 <div class="container"><div id="content">Загружаем…</div></div>
@@ -20,280 +23,292 @@ let state = { task: null, mod: null, lang: null, progress: null, hintUsed:false,
 if (user) init();
 
 async function init() {
- document.getElementById('nav').innerHTML = renderNavbar('catalog');
- try {
- const [tasks, modules] = await Promise.all([API.getTasks(), API.getModules()]);
- const task = tasks.find(t => t.id === taskId);
- if (!task) { document.getElementById('content').innerHTML = '<div class="card">Задача не найдена</div>'; return; }
- const mod = modules.find(m => m.id === task.module);
- const lang = mod? KURSOR_DB.LANGS[mod.lang]: null;
- let progress = null;
- if (user.role === 'student') progress = await API.getMyProgress();
- state = {...state, task, mod, lang, progress };
- render();
- } catch (err) {
- document.getElementById('content').innerHTML =
- `<div class="card" style="padding:30px;text-align:center;color:#ef4444">Ошибка: ${escapeHtml(err.message)}</div>`;
- }
+  document.getElementById('nav').innerHTML = renderNavbar('catalog');
+  try {
+    const [tasks, modules] = await Promise.all([API.getTasks(), API.getModules()]);
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) { document.getElementById('content').innerHTML = '<div class="card">Задача не найдена</div>'; return; }
+    const mod = modules.find(m => m.id === task.module);
+    const lang = mod ? KURSOR_DB.LANGS[mod.lang] : null;
+    let progress = null;
+    if (user.role === 'student') progress = await API.getMyProgress();
+    state = { ...state, task, mod, lang, progress };
+    render();
+  } catch (err) {
+    document.getElementById('content').innerHTML =
+      `<div class="card" style="padding:30px;text-align:center;color:#ef4444">Ошибка: ${escapeHtml(err.message)}</div>`;
+  }
 }
 
+const typeIcons = {
+  quiz:    '<img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:16px;height:16px;vertical-align:-3px">',
+  fill:    '<img src="https://cdn-icons-png.flaticon.com/512/1250/1250615.png" style="width:16px;height:16px;vertical-align:-3px">',
+  order:   '<img src="https://cdn-icons-png.flaticon.com/512/10209/10209063.png" style="width:16px;height:16px;vertical-align:-3px">',
+  code:    '<img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:16px;height:16px;vertical-align:-3px">',
+  project: '<img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:16px;height:16px;vertical-align:-3px">',
+};
+const typeNames = { quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект' };
+const points = { quiz:10, fill:15, order:20, code:25, project:50 };
+
 function render() {
- const { task, mod, lang } = state;
- const typeIcons = { quiz:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/3209/3209265.png" alt="">', fill:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" alt="">', order:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/8090/8090669.png" alt="">', code:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/1005/1005141.png" alt="">', project:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" alt="">' };
- const typeNames = { quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект' };
- const points = { quiz:10, fill:15, order:20, code:25, project:50 };
+  const { task, mod, lang } = state;
 
- document.getElementById('content').innerHTML = `
- <div style="margin-bottom:18px">
- <a href="/pages/catalog.html" class="btn btn-ghost">← К каталогу</a>
- </div>
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom:18px">
+      <a href="/pages/catalog.html" class="btn btn-ghost">← К каталогу</a>
+    </div>
 
- <div class="task-layout">
- <div class="task-info-panel">
- ${lang? `<span class="lang-badge ${lang.class}" style="margin-bottom:8px;display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="${lang.icon||''}" alt=""> ${lang.name}</span>`: ''}
- <h1 style="margin-bottom:6px">${escapeHtml(task.title)}</h1>
- <div style="color:#64748b;font-size:14px;margin-bottom:14px">
- ${typeIcons[task.type]} ${typeNames[task.type]} · <img class="ic ic-14" src="https://cdn-icons-png.flaticon.com/512/616/616490.png" alt=""> <span style="vertical-align:middle">${points[task.type]} очков</span> · ${Array(task.difficulty||1).fill('<img class="ic ic-14" src="https://cdn-icons-png.flaticon.com/512/616/616490.png" alt="">').join('')}
- </div>
+    <div class="task-layout">
+      <div class="task-info-panel">
+        ${lang ? `<span class="lang-badge ${lang.class}" style="margin-bottom:8px"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
+        <h1 style="margin-bottom:6px">${escapeHtml(task.title)}</h1>
+        <div style="color:#64748b;font-size:14px;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+          ${typeIcons[task.type]} ${typeNames[task.type]}
+          <span style="color:#cbd5e1">·</span>
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:14px;height:14px;vertical-align:-2px"> ${points[task.type]} очков
+          <span style="color:#cbd5e1">·</span>
+          ${'★'.repeat(task.difficulty||1)}
+        </div>
 
- ${mod? `
- <div class="mascot-bubble">
- <img src="${KURSOR_DB.MASCOT.explain}" alt="">
- <div class="speech">
- <b style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/2436/2436874.png" alt=""> Тема: ${escapeHtml(mod.title)}</b>
- <div style="margin-top:8px">${mod.explanation || mod.description || ''}</div>
- ${mod.video? `<div class="video-embed"><iframe src="${mod.video}" allowfullscreen></iframe></div>`: ''}
- </div>
- </div>`: ''}
+        ${mod ? `
+        <div class="mascot-bubble">
+          <img src="${KURSOR_DB.MASCOT.explain}" alt="">
+          <div class="speech">
+            <b>Тема: ${escapeHtml(mod.title)}</b>
+            <div style="margin-top:8px">${mod.explanation || mod.description || ''}</div>
+            ${mod.video ? `<div class="video-embed"><iframe src="${mod.video}" allowfullscreen></iframe></div>` : ''}
+          </div>
+        </div>` : ''}
 
- <div class="task-explanation">
- <h4 style="display:flex;align-items:center;gap:8px"><img class="ic ic-18" src="https://cdn-icons-png.flaticon.com/512/1535/1535765.png" alt=""> Задание</h4>
- <p style="white-space:pre-wrap">${escapeHtml(task.description)}</p>
- </div>
+        <div class="task-explanation">
+          <h4 style="display:flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/1087/1087927.png" style="width:18px;height:18px"> Задание</h4>
+          <p style="white-space:pre-wrap">${escapeHtml(task.description)}</p>
+        </div>
 
- ${task.explain? `
- <div id="hintWrap">
- <div class="hint-block locked" onclick="useHint()"> <span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/702/702797.png" alt=""> Открыть подсказку (−5 очков)</span>
- </div>
- </div>`: ''}
- </div>
+        ${task.explain ? `
+        <div id="hintWrap">
+          <div class="hint-block locked" onclick="useHint()" style="display:flex;align-items:center;gap:8px">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:16px;height:16px"> Открыть подсказку (−5 очков)
+          </div>
+        </div>` : ''}
+      </div>
 
- <div class="solver-panel">
- <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px"><img class="ic ic-18" src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" alt=""> Твой ответ</h3>
- ${renderSolver(task)}
- <div id="feedback"></div>
- <div style="margin-top:16px;display:flex;gap:10px">
- <button class="btn btn-lg btn-success" id="checkBtn" onclick="checkAnswer()"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/5610/5610944.png" alt=""> Проверить</span></button>
- <button class="btn btn-outline" onclick="location.reload()"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/2099/2099058.png" alt=""> Сбросить</span></button>
- </div>
- </div>
- </div>
- `;
- attachInteractions(task);
+      <div class="solver-panel">
+        <h3 style="margin-bottom:12px">Твой ответ</h3>
+        ${renderSolver(task)}
+        <div id="feedback"></div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button class="btn btn-lg btn-success" id="checkBtn" onclick="checkAnswer()">Проверить</button>
+          <button class="btn btn-outline" onclick="location.reload()">Сбросить</button>
+        </div>
+      </div>
+    </div>
+  `;
+  attachInteractions(task);
 }
 
 function renderSolver(task) {
- switch (task.type) {
- case 'quiz':
- return `
- <div class="quiz-options" id="quizOpts">
- ${(task.options||[]).map((o, i) => `
- <div class="quiz-option" data-idx="${i}">
- <div class="option-letter">${String.fromCharCode(65+i)}</div>
- <div>${escapeHtml(o)}</div>
- </div>`).join('')}
- </div>`;
- case 'fill':
- return `
- <p style="margin-bottom:10px;color:#64748b">Введи правильное слово или число:</p>
- <input type="text" class="form-input" id="fillInput" placeholder="твой ответ" autofocus>`;
- case 'order':
- return `
- <p style="margin-bottom:10px;color:#64748b">Перетащи строки в правильный порядок:</p>
- <div class="drag-area" id="dragArea"></div>`;
- case 'code':
- return `
- <p style="margin-bottom:10px;color:#64748b">Напиши код. Что должно вывести:
- <code style="display:block;background:#1e293b;color:#a7f3d0;padding:8px;border-radius:6px;margin-top:6px;white-space:pre-wrap">${escapeHtml(task.expectedOutput || '')}</code>
- </p>
- <textarea class="code-input" id="codeInput" spellcheck="false">${escapeHtml(task.starter || '')}</textarea>
- <div style="margin-top:10px;display:flex;gap:8px">
- <button class="btn btn-outline" onclick="runPython()" id="runBtn"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/727/727245.png" alt=""> Запустить</span></button>
- <span id="runStatus" style="align-self:center;color:#64748b;font-size:13px"></span>
- </div>
- <div id="runOutput" style="margin-top:10px"></div>`;
- case 'project':
- return `
- <p style="margin-bottom:10px;color:#64748b">Загрузи ссылку на проект, опиши что сделал или вставь скриншот:</p>
- <textarea class="form-input" id="projectInput" rows="6" placeholder="Ссылка на Scratch, GitHub, описание…" style="font-family:inherit;resize:vertical"></textarea>
- <p style="font-size:13px;color:#64748b;margin-top:10px">Учитель проверит твой проект и поставит оценку.</p>`;
- }
+  switch (task.type) {
+    case 'quiz':
+      return `
+        <div class="quiz-options" id="quizOpts">
+          ${(task.options||[]).map((o, i) => `
+            <div class="quiz-option" data-idx="${i}">
+              <div class="option-letter">${String.fromCharCode(65+i)}</div>
+              <div>${escapeHtml(o)}</div>
+            </div>`).join('')}
+        </div>`;
+    case 'fill':
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Введи правильное слово или число:</p>
+        <input type="text" class="form-input" id="fillInput" placeholder="твой ответ" autofocus>`;
+    case 'order':
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Перетащи строки в правильный порядок:</p>
+        <div class="drag-area" id="dragArea"></div>`;
+    case 'code':
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Напиши код. Что должно вывести:
+          <code style="display:block;background:#1e293b;color:#a7f3d0;padding:8px;border-radius:6px;margin-top:6px;white-space:pre-wrap">${escapeHtml(task.expectedOutput || '')}</code>
+        </p>
+        <textarea class="code-input" id="codeInput" spellcheck="false">${escapeHtml(task.starter || '')}</textarea>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline" onclick="runPython()" id="runBtn" style="display:flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:16px;height:16px"> Запустить</button>
+          <span id="runStatus" style="color:#64748b;font-size:13px"></span>
+        </div>
+        <div id="runOutput" style="margin-top:10px"></div>`;
+    case 'project':
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Загрузи ссылку на проект, опиши что сделал или вставь скриншот:</p>
+        <textarea class="form-input" id="projectInput" rows="6" placeholder="Ссылка на Scratch, GitHub, описание…" style="font-family:inherit;resize:vertical"></textarea>
+        <p style="font-size:13px;color:#64748b;margin-top:10px">Учитель проверит твой проект и поставит оценку.</p>`;
+  }
 }
 
 function attachInteractions(task) {
- if (task.type === 'quiz') {
- document.querySelectorAll('.quiz-option').forEach(opt => {
- opt.onclick = () => {
- document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
- opt.classList.add('selected');
- state.selectedOption = parseInt(opt.dataset.idx);
- };
- });
- }
- if (task.type === 'order') {
- const shuffled = [...(task.items||[])].map(v => ({v, r: Math.random()})).sort((a,b)=>a.r-b.r).map(o=>o.v);
- state.dragOrder = shuffled.slice();
- renderDrag();
- }
+  if (task.type === 'quiz') {
+    document.querySelectorAll('.quiz-option').forEach(opt => {
+      opt.onclick = () => {
+        document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        state.selectedOption = parseInt(opt.dataset.idx);
+      };
+    });
+  }
+  if (task.type === 'order') {
+    const shuffled = [...(task.items||[])].map(v => ({v, r: Math.random()})).sort((a,b)=>a.r-b.r).map(o=>o.v);
+    state.dragOrder = shuffled.slice();
+    renderDrag();
+  }
 }
 
 function renderDrag() {
- const area = document.getElementById('dragArea');
- area.innerHTML = state.dragOrder.map((item, i) => `<div class="drag-item" draggable="true" data-idx="${i}">${escapeHtml(item)}</div>`).join('');
- let draggedIdx = null;
- area.querySelectorAll('.drag-item').forEach(el => {
- el.ondragstart = () => { draggedIdx = parseInt(el.dataset.idx); el.style.opacity='0.4'; };
- el.ondragend = () => { el.style.opacity='1'; document.querySelectorAll('.drag-item').forEach(x=>x.classList.remove('over')); };
- el.ondragover = (e) => { e.preventDefault(); el.classList.add('over'); };
- el.ondragleave = () => el.classList.remove('over');
- el.ondrop = (e) => {
- e.preventDefault();
- const targetIdx = parseInt(el.dataset.idx);
- if (draggedIdx!== null && draggedIdx!== targetIdx) {
- const arr = state.dragOrder;
- const [m] = arr.splice(draggedIdx, 1);
- arr.splice(targetIdx, 0, m);
- renderDrag();
- }
- };
- });
+  const area = document.getElementById('dragArea');
+  area.innerHTML = state.dragOrder.map((item, i) => `<div class="drag-item" draggable="true" data-idx="${i}">${escapeHtml(item)}</div>`).join('');
+  let draggedIdx = null;
+  area.querySelectorAll('.drag-item').forEach(el => {
+    el.ondragstart = () => { draggedIdx = parseInt(el.dataset.idx); el.style.opacity='0.4'; };
+    el.ondragend = () => { el.style.opacity='1'; document.querySelectorAll('.drag-item').forEach(x=>x.classList.remove('over')); };
+    el.ondragover = (e) => { e.preventDefault(); el.classList.add('over'); };
+    el.ondragleave = () => el.classList.remove('over');
+    el.ondrop = (e) => {
+      e.preventDefault();
+      const targetIdx = parseInt(el.dataset.idx);
+      if (draggedIdx !== null && draggedIdx !== targetIdx) {
+        const arr = state.dragOrder;
+        const [m] = arr.splice(draggedIdx, 1);
+        arr.splice(targetIdx, 0, m);
+        renderDrag();
+      }
+    };
+  });
 }
 
 function useHint() {
- state.hintUsed = true;
- document.getElementById('hintWrap').innerHTML = `
- <div class="hint-block">
- <b style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/702/702797.png" alt=""> Подсказка:</b> ${escapeHtml(state.task.explain)}
- </div>`;
+  state.hintUsed = true;
+  document.getElementById('hintWrap').innerHTML = `
+    <div class="hint-block" style="display:flex;align-items:flex-start;gap:8px">
+      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:16px;height:16px;margin-top:2px">
+      <div><b>Подсказка:</b> ${escapeHtml(state.task.explain)}</div>
+    </div>`;
 }
 
-async function recordCompleteSafe(taskId, points, usedHint, submission) {
- if (user.role!== 'student') return;
- try { state.progress = await API.recordComplete(taskId, points, usedHint, submission); }
- catch (e) { console.error(e); }
+async function recordCompleteSafe(taskId, pts, usedHint, submission) {
+  if (user.role !== 'student') return;
+  try { state.progress = await API.recordComplete(taskId, pts, usedHint, submission); }
+  catch (e) { console.error(e); }
 }
 
 async function recordAttemptSafe(taskId) {
- if (user.role!== 'student') return;
- try { state.progress = await API.recordAttempt(taskId); } catch (e) { console.error(e); }
+  if (user.role !== 'student') return;
+  try { state.progress = await API.recordAttempt(taskId); } catch (e) { console.error(e); }
 }
 
 async function checkAnswer() {
- const task = state.task;
- const points = { quiz:10, fill:15, order:20, code:25, project:50 };
- let correct = false, userAnswer = null;
+  const task = state.task;
+  let correct = false, userAnswer = null;
 
- switch (task.type) {
- case 'quiz':
- if (state.selectedOption === null) { showFeedback(false, 'Выбери ответ!'); return; }
- userAnswer = state.selectedOption;
- correct = userAnswer === task.answer;
- document.querySelectorAll('.quiz-option').forEach((o, i) => {
- if (i === task.answer) o.classList.add('correct');
- else if (i === userAnswer &&!correct) o.classList.add('wrong');
- });
- break;
- case 'fill':
- const fv = document.getElementById('fillInput').value.trim().toLowerCase();
- if (!fv) { showFeedback(false, 'Введи ответ!'); return; }
- correct = fv === String(task.answer).toLowerCase().trim();
- userAnswer = fv;
- break;
- case 'order':
- correct = JSON.stringify(state.dragOrder) === JSON.stringify(task.items);
- userAnswer = state.dragOrder;
- break;
- case 'code':
- await runPython(true);
- return;
- case 'project':
- const pv = document.getElementById('projectInput').value.trim();
- if (pv.length < 10) { showFeedback(false, 'Опиши подробнее (мин. 10 символов).'); return; }
- await recordCompleteSafe(task.id, points.project, state.hintUsed, pv);
- showFeedback(true, ' Проект отправлен учителю на проверку!');
- fireConfetti();
- return;
- }
+  switch (task.type) {
+    case 'quiz':
+      if (state.selectedOption === null) { showFeedback(false, 'Выбери ответ!'); return; }
+      userAnswer = state.selectedOption;
+      correct = userAnswer === task.answer;
+      document.querySelectorAll('.quiz-option').forEach((o, i) => {
+        if (i === task.answer) o.classList.add('correct');
+        else if (i === userAnswer && !correct) o.classList.add('wrong');
+      });
+      break;
+    case 'fill':
+      const fv = document.getElementById('fillInput').value.trim().toLowerCase();
+      if (!fv) { showFeedback(false, 'Введи ответ!'); return; }
+      correct = fv === String(task.answer).toLowerCase().trim();
+      userAnswer = fv;
+      break;
+    case 'order':
+      correct = JSON.stringify(state.dragOrder) === JSON.stringify(task.items);
+      userAnswer = state.dragOrder;
+      break;
+    case 'code':
+      await runPython(true);
+      return;
+    case 'project':
+      const pv = document.getElementById('projectInput').value.trim();
+      if (pv.length < 10) { showFeedback(false, 'Опиши подробнее (мин. 10 символов).'); return; }
+      await recordCompleteSafe(task.id, points.project, state.hintUsed, pv);
+      showFeedback(true, 'Проект отправлен учителю на проверку!');
+      fireConfetti();
+      return;
+  }
 
- await recordAttemptSafe(task.id);
+  await recordAttemptSafe(task.id);
 
- if (correct) {
- let pts = points[task.type];
- if (!state.hintUsed) pts += 5;
- await recordCompleteSafe(task.id, pts, state.hintUsed);
- showFeedback(true, `Правильно! +${pts} очков${state.hintUsed? '': ' (бонус за решение без подсказки!)'}`);
- fireConfetti();
- } else {
- showFeedback(false, task.explain? `Не совсем. ${task.explain}`: 'Попробуй ещё раз!');
- }
+  if (correct) {
+    let pts = points[task.type];
+    if (!state.hintUsed) pts += 5;
+    await recordCompleteSafe(task.id, pts, state.hintUsed);
+    showFeedback(true, `Правильно! +${pts} очков${state.hintUsed ? '' : ' (бонус за решение без подсказки!)'}`);
+    fireConfetti();
+  } else {
+    showFeedback(false, task.explain ? `Не совсем. ${task.explain}` : 'Попробуй ещё раз!');
+  }
 }
 
 function showFeedback(success, msg) {
- document.getElementById('feedback').innerHTML = `
- <div class="feedback ${success? 'success': 'error'}">
- <img class="mascot-sm" src="${success? KURSOR_DB.MASCOT.happy: KURSOR_DB.MASCOT.sad}" alt="Маскот">
- <div>
- <div style="font-size:16px;margin-bottom:4px">${msg}</div>
- ${success? `<a href="/pages/catalog.html" class="btn btn-success" style="margin-top:8px"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt=""> Ещё задачу!</span></a>`: ''}
- </div>
- </div>`;
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback ${success ? 'success' : 'error'}">
+      <img class="mascot-sm" src="${success ? KURSOR_DB.MASCOT.happy : KURSOR_DB.MASCOT.sad}" alt="Маскот">
+      <div>
+        <div style="font-size:16px;margin-bottom:4px">${msg}</div>
+        ${success ? `<a href="/pages/catalog.html" class="btn btn-success" style="margin-top:8px">Ещё задачу!</a>` : ''}
+      </div>
+    </div>`;
 }
 
 let pyodide = null;
 async function loadPyodide_() {
- if (pyodide) return pyodide;
- document.getElementById('runStatus').textContent = 'Загружаю Python...';
- const script = document.createElement('script');
- script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
- document.body.appendChild(script);
- await new Promise(r => script.onload = r);
- pyodide = await loadPyodide();
- document.getElementById('runStatus').textContent = '';
- return pyodide;
+  if (pyodide) return pyodide;
+  document.getElementById('runStatus').textContent = 'Загружаю Python...';
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+  document.body.appendChild(script);
+  await new Promise(r => script.onload = r);
+  pyodide = await loadPyodide();
+  document.getElementById('runStatus').textContent = '';
+  return pyodide;
 }
 
 async function runPython(autoCheck = false) {
- const task = state.task;
- const code = document.getElementById('codeInput').value;
- const out = document.getElementById('runOutput');
- document.getElementById('runStatus').textContent = 'Подготовка...';
- try {
- await loadPyodide_();
- pyodide.setStdout({ batched: (s) => { window._pyOut += s + '\n'; } });
- window._pyOut = '';
- document.getElementById('runStatus').textContent = 'Выполняю...';
- pyodide.runPython(code);
- document.getElementById('runStatus').textContent = 'Готово';
- const result = (window._pyOut || '').trim();
- out.innerHTML = `<div style="background:#1e293b;color:#a7f3d0;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">${escapeHtml(result || '(нет вывода)')}</div>`;
+  const task = state.task;
+  const code = document.getElementById('codeInput').value;
+  const out = document.getElementById('runOutput');
+  document.getElementById('runStatus').textContent = 'Подготовка...';
+  try {
+    await loadPyodide_();
+    pyodide.setStdout({ batched: (s) => { window._pyOut += s + '\n'; } });
+    window._pyOut = '';
+    document.getElementById('runStatus').textContent = 'Выполняю...';
+    pyodide.runPython(code);
+    document.getElementById('runStatus').textContent = 'Готово';
+    const result = (window._pyOut || '').trim();
+    out.innerHTML = `<div style="background:#1e293b;color:#a7f3d0;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">${escapeHtml(result || '(нет вывода)')}</div>`;
 
- const expected = (task.expectedOutput || '').trim();
- if (expected) {
- const normalize = s => s.replace(/\r\n/g, '\n').trim();
- const correct = normalize(result) === normalize(expected);
- if (correct) {
- let pts = 25; if (!state.hintUsed) pts += 5;
- await recordCompleteSafe(task.id, pts, state.hintUsed);
- showFeedback(true, `Идеально! Вывод совпадает. +${pts} очков`);
- fireConfetti();
- } else if (autoCheck) {
- showFeedback(false, `Вывод не совпадает с ожидаемым. Проверь логику.`);
- }
- }
- } catch (e) {
- document.getElementById('runStatus').textContent = '';
- out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">Ошибка: ${escapeHtml(e.message)}</div>`;
- }
+    const expected = (task.expectedOutput || '').trim();
+    if (expected) {
+      const normalize = s => s.replace(/\r\n/g, '\n').trim();
+      const correct = normalize(result) === normalize(expected);
+      if (correct) {
+        let pts = 25; if (!state.hintUsed) pts += 5;
+        await recordCompleteSafe(task.id, pts, state.hintUsed);
+        showFeedback(true, `Идеально! Вывод совпадает. +${pts} очков`);
+        fireConfetti();
+      } else if (autoCheck) {
+        showFeedback(false, 'Вывод не совпадает с ожидаемым. Проверь логику.');
+      }
+    }
+  } catch (e) {
+    document.getElementById('runStatus').textContent = '';
+    out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">Ошибка: ${escapeHtml(e.message)}</div>`;
+  }
 }
 </script>
 </body>

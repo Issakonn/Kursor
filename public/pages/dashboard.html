@@ -99,12 +99,12 @@ function render(tasks, modules, progress) {
         const pct = p.total ? Math.round(p.done / p.total * 100) : 0;
         return `
           <div class="card">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-              <img src="${lang.icon}" style="width:28px;height:28px;object-fit:contain">
-              <b>${lang.name}</b>
+            <div class="lang-card-row">
+              <img src="${lang.icon}" alt="" style="width:32px;height:32px;object-fit:contain">
+              <b>${escapeHtml(lang.name)}</b>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-            <div style="font-size:13px;color:#64748b;margin-top:6px">${p.done} / ${p.total} задач</div>
+            <div style="font-size:13px;color:#64748b;margin-top:8px">${p.done} / ${p.total} задач</div>
           </div>`;
       }).join('')}
     </div>` : ''}

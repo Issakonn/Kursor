@@ -15,12 +15,18 @@
 
   <div class="filters">
     <input class="search-input" id="search" placeholder="Поиск задач...">
-    <button class="filter-chip active" data-filter="status" data-value="all">Все</button>
-    <button class="filter-chip" data-filter="status" data-value="new">Не начато</button>
-    <button class="filter-chip" data-filter="status" data-value="done">Решено</button>
-    <button class="filter-chip" data-filter="type" data-value="quiz" style="display:inline-flex;align-items:center;gap:5px"><img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:14px;height:14px"> Тесты</button>
-    <button class="filter-chip" data-filter="type" data-value="code" style="display:inline-flex;align-items:center;gap:5px"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:14px;height:14px"> Код</button>
-    <button class="filter-chip" data-filter="type" data-value="project" style="display:inline-flex;align-items:center;gap:5px"><img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:14px;height:14px"> Проекты</button>
+    <div class="filter-group" data-filter="status">
+      <button class="filter-chip active" data-value="all">Все</button>
+      <button class="filter-chip" data-value="new">Не начато</button>
+      <button class="filter-chip" data-value="done">Решено</button>
+    </div>
+    <div class="filter-divider"></div>
+    <div class="filter-group" data-filter="type">
+      <button class="filter-chip active" data-value="all">Все типы</button>
+      <button class="filter-chip" data-value="quiz"><img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" class="chip-ic"> Тесты</button>
+      <button class="filter-chip" data-value="code"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" class="chip-ic"> Код</button>
+      <button class="filter-chip" data-value="project"><img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" class="chip-ic"> Проекты</button>
+    </div>
   </div>
 
   <div id="langFilters" class="filters" style="margin-top:-12px"></div>
@@ -52,14 +58,26 @@ async function init() {
       render();
     };
   });
-  document.querySelectorAll('.filters .filter-chip[data-filter]').forEach(b => {
-    b.onclick = () => {
-      const f = b.dataset.filter, v = b.dataset.value;
-      document.querySelectorAll(`.filter-chip[data-filter="${f}"]`).forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      filters[f] = v === 'all' ? null : v;
-      render();
-    };
+  // Кнопки внутри .filter-group переключают значение группы.
+  // Повторный клик по активной (не "Все") = сброс на "Все".
+  document.querySelectorAll('.filter-group').forEach(group => {
+    const f = group.dataset.filter;
+    group.querySelectorAll('.filter-chip').forEach(b => {
+      b.onclick = () => {
+        const v = b.dataset.value;
+        if (b.classList.contains('active') && v !== 'all') {
+          group.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
+          const allBtn = group.querySelector('.filter-chip[data-value="all"]');
+          if (allBtn) allBtn.classList.add('active');
+          filters[f] = null;
+        } else {
+          group.querySelectorAll('.filter-chip').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          filters[f] = v === 'all' ? null : v;
+        }
+        render();
+      };
+    });
   });
   document.getElementById('search').oninput = e => { filters.search = e.target.value.toLowerCase(); render(); };
 

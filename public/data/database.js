@@ -16,20 +16,20 @@ const LOGO = 'https://salamalekum.sirv.com/_1_1.png.webp';
 
 /* ===== ЯЗЫКИ / ТЕХНОЛОГИИ ===== */
 const LANGS = {
-  scratch:    { name: 'Scratch',          icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/scratch/scratch-original.svg',   class: 'lang-scratch',     group: 1 },
-  blockly:    { name: 'Blockly',          icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg',     class: 'lang-blockly',     group: 1 },
-  minecraft:  { name: 'Minecraft Edu',    icon:'https://cdn-icons-png.flaticon.com/512/871/871381.png',                             class: 'lang-minecraft',   group: 1 },
-  design:     { name: 'Дизайн/Анимация',  icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',       class: 'lang-design',      group: 1 },
-  html:       { name: 'HTML / CSS',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',       class: 'lang-html',        group: 2 },
-  python:     { name: 'Python',           icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',     class: 'lang-python',      group: 2 },
-  roblox:     { name: 'Roblox Lua',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg',           class: 'lang-roblox',      group: 2 },
-  cyber:      { name: 'Кибербезопасность',icon:'https://cdn-icons-png.flaticon.com/512/2913/2913133.png',                           class: 'lang-cyber',       group: 2 },
-  pythonpro:  { name: 'Python Pro',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',     class: 'lang-python',      group: 3 },
-  java:       { name: 'Java',             icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',         class: 'lang-java',        group: 3 },
-  cpp:        { name: 'C++',              icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',class: 'lang-cpp',         group: 3 },
-  unity:      { name: 'Unity / C#',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg',       class: 'lang-unity',       group: 3 },
-  blender:    { name: 'Blender 3D',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg',   class: 'lang-blender',     group: 3 },
-  datascience:{ name: 'Data Science',     icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jupyter/jupyter-original.svg',   class: 'lang-datascience', group: 3 },
+  scratch:    { name: 'Scratch',           icon:'/uploads/icons/scratch.svg',     class: 'lang-scratch',     group: 1 },
+  blockly:    { name: 'Blockly',           icon:'/uploads/icons/blockly.svg',     class: 'lang-blockly',     group: 1 },
+  minecraft:  { name: 'Minecraft Edu',     icon:'/uploads/icons/minecraft.svg',   class: 'lang-minecraft',   group: 1 },
+  design:     { name: 'Дизайн/Анимация',   icon:'/uploads/icons/design.svg',      class: 'lang-design',      group: 1 },
+  html:       { name: 'HTML / CSS',        icon:'/uploads/icons/html.svg',        class: 'lang-html',        group: 2 },
+  python:     { name: 'Python',            icon:'/uploads/icons/python.svg',      class: 'lang-python',      group: 2 },
+  roblox:     { name: 'Roblox Lua',        icon:'/uploads/icons/roblox.svg',      class: 'lang-roblox',      group: 2 },
+  cyber:      { name: 'Кибербезопасность', icon:'/uploads/icons/cyber.svg',       class: 'lang-cyber',       group: 2 },
+  pythonpro:  { name: 'Python Pro',        icon:'/uploads/icons/python.svg',      class: 'lang-python',      group: 3 },
+  java:       { name: 'Java',              icon:'/uploads/icons/java.svg',        class: 'lang-java',        group: 3 },
+  cpp:        { name: 'C++',               icon:'/uploads/icons/cpp.svg',         class: 'lang-cpp',         group: 3 },
+  unity:      { name: 'Unity / C#',        icon:'/uploads/icons/unity.svg',       class: 'lang-unity',       group: 3 },
+  blender:    { name: 'Blender 3D',        icon:'/uploads/icons/blender.svg',     class: 'lang-blender',     group: 3 },
+  datascience:{ name: 'Data Science',      icon:'/uploads/icons/datascience.svg', class: 'lang-datascience', group: 3 },
 };
 
 const GROUPS = {

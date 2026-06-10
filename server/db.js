@@ -1,6 +1,7 @@
 /* ============================================================
    KURSOR — Доступ к SQLite (better-sqlite3, синхронный API)
    ============================================================ */
+/*Иу*/
 const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');

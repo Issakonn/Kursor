@@ -45,7 +45,7 @@ const MODULES = [
   // ===== SCRATCH =====
   { id:'scratch_1', lang:'scratch', title:'Движение и сцена',
     description:'Учимся двигать кота, менять костюм и держать его на сцене.',
-    video:'https://www.youtube.com/embed/jXUZaf5D12A',
+    video:'https://www.youtube.com/embed/ebEzvikobR0',
     explanation:`
 <p>Привет! Сегодня мы научимся <b>управлять котом</b> в Scratch!</p>
 <p>Scratch — это среда, где код собирается из <b>цветных блоков</b>, как из конструктора Lego. Никаких сложных слов писать не надо!</p>
@@ -62,7 +62,7 @@ const MODULES = [
 
   { id:'scratch_2', lang:'scratch', title:'Условия (если...то)',
     description:'Учим кота реагировать на клавиши и касания.',
-    video:'https://www.youtube.com/embed/imnxTQPCEM8',
+    video:'https://www.youtube.com/embed/cMWbyEGH2Fs',
     explanation:`
 <p>Условия — это когда программа <b>думает</b> и решает что делать дальше.</p>
 <p>Например: <i>"Если идёт дождь — взять зонтик. Иначе — идти так".</i></p>
@@ -78,7 +78,7 @@ const MODULES = [
 
   { id:'scratch_3', lang:'scratch', title:'Циклы (повторения)',
     description:'Учимся повторять действия без копирования блоков.',
-    video:'https://www.youtube.com/embed/jXUZaf5D12A',
+    video:'https://www.youtube.com/embed/NheyBvBaVIw',
     explanation:`
 <p>Цикл — это когда мы хотим, чтобы программа <b>повторила</b> что-то несколько раз.</p>
 <p>Например: нарисовать квадрат — нужно 4 раза пройти прямо и повернуться на 90°. Без цикла пришлось бы поставить 8 блоков подряд. С циклом — всего 3!</p>
@@ -93,7 +93,7 @@ const MODULES = [
 
   { id:'scratch_4', lang:'scratch', title:'Переменные и счётчик',
     description:'Создаём счёт очков и таймер.',
-    video:'https://www.youtube.com/embed/jXUZaf5D12A',
+    video:'https://www.youtube.com/embed/j8AePyuLw38',
     explanation:`
 <p>Переменная — это <b>коробочка</b> с именем, в которую можно положить число или слово.</p>
 <p>В играх переменные нужны для: счёта очков, жизней, таймера, здоровья.</p>
@@ -165,7 +165,7 @@ const MODULES = [
 
   { id:'minecraft_2', lang:'minecraft', title:'Агент и команды',
     description:'Программируем агента строить дом и сажать деревья.',
-    video:'https://www.youtube.com/embed/2QXm9rDqXm0',
+    video:'https://www.youtube.com/embed/rYK_rjSQry4',
     explanation:`
 <p><b>Агент</b> — это твой помощник-робот в Minecraft Education. Ему можно давать команды в коде!</p>
 <h4>Основные команды агента (на блоках или Python):</h4>
@@ -181,7 +181,7 @@ const MODULES = [
   // ===== DESIGN =====
   { id:'design_1', lang:'design', title:'Пиксель-арт',
     description:'Рисуем персонажа из квадратиков 16×16.',
-    video:'https://www.youtube.com/embed/p7TwjJh-_Sw',
+    video:'https://www.youtube.com/embed/Iage6QLg-zM',
     explanation:`
 <p>Пиксель-арт — это рисунки из <b>квадратиков</b> (пикселей). Так выглядят старые игры на Денди!</p>
 <p>Размер 16×16 — это очень популярный формат: помещается персонаж, но не слишком сложно.</p>
@@ -196,7 +196,7 @@ const MODULES = [
 
   { id:'design_2', lang:'design', title:'Анимация кадрами',
     description:'Делаем GIF из нескольких рисунков.',
-    video:'https://www.youtube.com/embed/p7TwjJh-_Sw',
+    video:'https://www.youtube.com/embed/VM7DRlzVnK0',
     explanation:`
 <p>Анимация — это <b>много картинок</b> подряд, которые быстро меняются. Так появляется движение!</p>
 <p>Один кадр = одна картинка. В мультфильме 24 кадра в секунду.</p>
@@ -213,7 +213,7 @@ const MODULES = [
   // ===== HTML/CSS =====
   { id:'html_1', lang:'html', title:'Теги и структура',
     description:'Базовые теги HTML: заголовки, абзацы, списки, ссылки.',
-    video:'https://www.youtube.com/embed/Wm6CUkswsNw',
+    video:'https://www.youtube.com/embed/1OL38vcF-VM',
     explanation:`
 <p>HTML — это <b>язык разметки</b>. С его помощью мы говорим браузеру: «здесь заголовок, здесь картинка, здесь ссылка».</p>
 <h4>Основные теги:</h4>
@@ -230,7 +230,7 @@ const MODULES = [
 
   { id:'html_2', lang:'html', title:'Картинки и таблицы',
     description:'Вставка изображений и создание таблиц.',
-    video:'https://www.youtube.com/embed/Wm6CUkswsNw',
+    video:'https://www.youtube.com/embed/NP2NJVfgWm8',
     explanation:`
 <p>️ Чтобы вставить картинку: <code>&lt;img src="cat.jpg" alt="Котик"&gt;</code></p>
 <ul>
@@ -247,7 +247,7 @@ const MODULES = [
 
   { id:'html_3', lang:'html', title:'CSS стили',
     description:'Меняем цвета, шрифты и размеры.',
-    video:'https://www.youtube.com/embed/1Rs2ND1ryYc',
+    video:'https://www.youtube.com/embed/AXNbtVTYVSM',
     explanation:`
 <p>CSS = <b>красота</b> HTML. С помощью CSS делаем сайт цветным и красивым.</p>
 <h4>Базовый синтаксис:</h4>
@@ -273,7 +273,7 @@ p {
 
   { id:'html_4', lang:'html', title:'Flexbox и сетки',
     description:'Делаем элементы в ряд и в сетку.',
-    video:'https://www.youtube.com/embed/3YW65K6LcIA',
+    video:'https://www.youtube.com/embed/NddTNohooIs',
     explanation:`
 <p>Flexbox — это супер-инструмент CSS, чтобы располагать элементы в ряд или в столбик.</p>
 <pre>.container {
@@ -293,7 +293,7 @@ p {
   // ===== PYTHON =====
   { id:'python_1', lang:'python', title:'print и переменные',
     description:'Первый код на Python: вывод и хранение данных.',
-    video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
+    video:'https://www.youtube.com/embed/kZUia3DYbBc',
     explanation:`
 <p>Python — это самый <b>понятный язык программирования</b>. Код выглядит как обычный английский!</p>
 <h4>Вывод на экран:</h4>
@@ -314,7 +314,7 @@ print(a / b)   # 1.666...</pre>
 
   { id:'python_2', lang:'python', title:'Условия if/else',
     description:'Программа сама принимает решения.',
-    video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
+    video:'https://www.youtube.com/embed/Z65QttzP36U',
     explanation:`
 <p>Условия позволяют программе <b>выбирать</b> что делать.</p>
 <pre>age = 12
@@ -334,7 +334,7 @@ else:
 
   { id:'python_3', lang:'python', title:'Циклы for и while',
     description:'Повторяем код много раз.',
-    video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
+    video:'https://www.youtube.com/embed/LFCq-mNF96c',
     explanation:`
 <p>Цикл — чтобы не писать одно и то же 100 раз.</p>
 <h4>for — точное количество раз:</h4>
@@ -352,7 +352,7 @@ print("Старт!")</pre>
 
   { id:'python_4', lang:'python', title:'Строки и работа с текстом',
     description:'Длина, поиск букв, переворот слов.',
-    video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
+    video:'https://www.youtube.com/embed/lDopbLZeMTg',
     explanation:`
 <p>Строка — это любой текст в кавычках: <code>"привет"</code>.</p>
 <h4>Полезные операции:</h4>
@@ -401,7 +401,7 @@ end)</pre>
   // ===== CYBER =====
   { id:'cyber_1', lang:'cyber', title:'Надёжные пароли',
     description:'Учимся придумывать пароли, которые не взломают.',
-    video:'https://www.youtube.com/embed/3NjQ9b3pgIg',
+    video:'https://www.youtube.com/embed/Y0UWs4vq7Vo',
     explanation:`
 <p>Пароль — это ключ к твоему аккаунту. Если он плохой — взломщик войдёт за секунды!</p>
 <h4>Правила надёжного пароля:</h4>
@@ -419,7 +419,7 @@ end)</pre>
 
   { id:'cyber_2', lang:'cyber', title:'Фишинг — как не попасться',
     description:'Распознаём опасные письма и сайты.',
-    video:'https://www.youtube.com/embed/o0btqyGWIQw',
+    video:'https://www.youtube.com/embed/TF56PlW7Lh4',
     explanation:`
 <p>Фишинг — это когда мошенник делает <b>фальшивый сайт</b> или письмо, чтобы украсть твой пароль.</p>
 <h4>Признаки фишингового письма:</h4>
@@ -435,7 +435,7 @@ end)</pre>
 
   { id:'cyber_3', lang:'cyber', title:'Как работают вирусы',
     description:'Откуда берутся вирусы и как защититься.',
-    video:'https://www.youtube.com/embed/o0btqyGWIQw',
+    video:'https://www.youtube.com/embed/6avzN1QglK4',
     explanation:`
 <p>Вирус — это <b>вредная программа</b>, которая может удалить файлы, украсть пароли или замедлить компьютер.</p>
 <h4>Как вирус попадает на ПК:</h4>
@@ -457,7 +457,7 @@ end)</pre>
   // ===== PYTHON PRO =====
   { id:'pythonpro_1', lang:'pythonpro', title:'Списки и словари',
     description:'Хранение коллекций данных.',
-    video:'https://www.youtube.com/embed/W8KRzm-HUcc',
+    video:'https://www.youtube.com/embed/Ir3LpiCcMrI',
     explanation:`
 <p><b>Список</b> — упорядоченная коллекция элементов в квадратных скобках:</p>
 <pre>grades = [5, 4, 5, 3, 5, 4]
@@ -476,7 +476,7 @@ for key, value in student.items():
 
   { id:'pythonpro_2', lang:'pythonpro', title:'Функции',
     description:'Свои собственные команды.',
-    video:'https://www.youtube.com/embed/W8KRzm-HUcc',
+    video:'https://www.youtube.com/embed/cKRRysbQZsM',
     explanation:`
 <p>Функция = <b>именованный кусок кода</b>, который можно использовать много раз.</p>
 <pre>def greet(name):
@@ -496,7 +496,7 @@ print(square(10))    # 100</pre>
 
   { id:'pythonpro_3', lang:'pythonpro', title:'Файлы и CSV',
     description:'Читаем и пишем данные на диск.',
-    video:'https://www.youtube.com/embed/W8KRzm-HUcc',
+    video:'https://www.youtube.com/embed/iX28sWsAT4Y',
     explanation:`
 <p>Программа может <b>сохранять</b> данные в файл и <b>читать</b> их обратно.</p>
 <pre># Запись
@@ -518,7 +518,7 @@ with open("contacts.csv") as f:
 
   { id:'pythonpro_4', lang:'pythonpro', title:'ООП — Классы',
     description:'Создаём свои типы данных.',
-    video:'https://www.youtube.com/embed/JeznW_7DlB0',
+    video:'https://www.youtube.com/embed/v1SkadIiP2k',
     explanation:`
 <p>️ ООП (объектно-ориентированное программирование) — мощный способ организовать код.</p>
 <p><b>Класс</b> — это чертёж. <b>Объект</b> — реальная вещь по этому чертежу.</p>
@@ -539,7 +539,7 @@ s2.info()</pre>
 
   { id:'pythonpro_5', lang:'pythonpro', title:'Алгоритмы сортировки и поиска',
     description:'Сортировка пузырьком и бинарный поиск.',
-    video:'https://www.youtube.com/embed/Kg4bqzAqRBM',
+    video:'https://www.youtube.com/embed/dd3RcafdOQk',
     explanation:`
 <p><b>Сортировка пузырьком:</b> сравниваем соседей и меняем местами, пока всё не упорядочится.</p>
 <pre>def bubble_sort(arr):
@@ -563,7 +563,7 @@ s2.info()</pre>
   // ===== JAVA =====
   { id:'java_1', lang:'java', title:'Синтаксис и Scanner',
     description:'Первая программа на Java, ввод данных.',
-    video:'https://www.youtube.com/embed/eIrMbAQSU34',
+    video:'https://www.youtube.com/embed/jNaJzmChPvY',
     explanation:`
 <p>Java — серьёзный язык, на котором написаны Minecraft и Android-приложения.</p>
 <pre>import java.util.Scanner;
@@ -581,7 +581,7 @@ public class Main {
 
   { id:'java_2', lang:'java', title:'ООП в Java',
     description:'Класс Студент с полями и методами.',
-    video:'https://www.youtube.com/embed/eIrMbAQSU34',
+    video:'https://www.youtube.com/embed/v1SkadIiP2k',
     explanation:`
 <pre>public class Student {
     String name;
@@ -609,7 +609,7 @@ System.out.println(a.isExcellent());</pre>
 
   { id:'java_3', lang:'java', title:'ArrayList',
     description:'Динамические массивы в Java.',
-    video:'https://www.youtube.com/embed/eIrMbAQSU34',
+    video:'https://www.youtube.com/embed/ArERhPCnpIM',
     explanation:`
 <pre>import java.util.ArrayList;
 
@@ -628,7 +628,7 @@ System.out.println(todo.size());</pre>
 
   { id:'java_4', lang:'java', title:'Наследование',
     description:'Shape → Circle, Rectangle.',
-    video:'https://www.youtube.com/embed/eIrMbAQSU34',
+    video:'https://www.youtube.com/embed/SC_goCYNkC4',
     explanation:`
 <pre>class Shape {
     double area() { return 0; }
@@ -651,7 +651,7 @@ class Rectangle extends Shape {
   // ===== C++ =====
   { id:'cpp_1', lang:'cpp', title:'Ввод/вывод и переменные',
     description:'cin, cout, типы данных.',
-    video:'https://www.youtube.com/embed/vLnPwxZdW4Y',
+    video:'https://www.youtube.com/embed/QN1UsaL3u5A',
     explanation:`
 <pre>#include &lt;iostream&gt;
 using namespace std;
@@ -675,7 +675,7 @@ int main() {
 
   { id:'cpp_2', lang:'cpp', title:'Условия и циклы C++',
     description:'if, for, while.',
-    video:'https://www.youtube.com/embed/vLnPwxZdW4Y',
+    video:'https://www.youtube.com/embed/YkL7yN23It8',
     explanation:`
 <pre>int n;
 cin >> n;
@@ -698,7 +698,7 @@ while (a < 100) {
 
   { id:'cpp_3', lang:'cpp', title:'Массивы и vector',
     description:'Работа с коллекциями данных.',
-    video:'https://www.youtube.com/embed/vLnPwxZdW4Y',
+    video:'https://www.youtube.com/embed/44y44mniCJ4',
     explanation:`
 <pre>#include &lt;vector&gt;
 #include &lt;algorithm&gt;
@@ -715,7 +715,7 @@ double avg = (double)sum / arr.size();</pre>
 
   { id:'cpp_4', lang:'cpp', title:'Функции и рекурсия',
     description:'Факториал, НОД, степень.',
-    video:'https://www.youtube.com/embed/vLnPwxZdW4Y',
+    video:'https://www.youtube.com/embed/_WGNSVDb0t8',
     explanation:`
 <p>Рекурсия — функция вызывает <b>сама себя</b>.</p>
 <pre>// Факториал
@@ -740,7 +740,7 @@ int power(int base, int exp) {
   // ===== UNITY =====
   { id:'unity_1', lang:'unity', title:'GameObject и компоненты',
     description:'Из чего состоит объект в Unity.',
-    video:'https://www.youtube.com/embed/IlKaB1etrik',
+    video:'https://www.youtube.com/embed/pl_w6sKEbPY',
     explanation:`
 <p>В Unity <b>всё — это GameObject</b>. На него навешиваются компоненты:</p>
 <ul>
@@ -755,7 +755,7 @@ int power(int base, int exp) {
 
   { id:'unity_2', lang:'unity', title:'Скрипты C# в Unity',
     description:'Двигаем объект клавишами.',
-    video:'https://www.youtube.com/embed/IlKaB1etrik',
+    video:'https://www.youtube.com/embed/NI3sCw7Upaw',
     explanation:`
 <pre>using UnityEngine;
 
@@ -774,7 +774,7 @@ public class PlayerMove : MonoBehaviour {
 
   { id:'unity_3', lang:'unity', title:'Физика и столкновения',
     description:'Прыжок и триггеры.',
-    video:'https://www.youtube.com/embed/IlKaB1etrik',
+    video:'https://www.youtube.com/embed/AMPZ5zVjxyo',
     explanation:`
 <pre>// Прыжок при нажатии пробела
 void Update() {
@@ -795,7 +795,7 @@ void OnTriggerEnter(Collider other) {
   // ===== BLENDER =====
   { id:'blender_1', lang:'blender', title:'Интерфейс Blender',
     description:'Окна, режимы, горячие клавиши.',
-    video:'https://www.youtube.com/embed/B0J27sf9N1Y',
+    video:'https://www.youtube.com/embed/5KY7PXalXKU',
     explanation:`
 <p>Blender — бесплатный редактор для 3D моделей, анимации и даже игр.</p>
 <h4>Режимы работы:</h4>
@@ -818,7 +818,7 @@ void OnTriggerEnter(Collider other) {
 
   { id:'blender_2', lang:'blender', title:'Моделинг — стул из куба',
     description:'Создаём первую модель.',
-    video:'https://www.youtube.com/embed/B0J27sf9N1Y',
+    video:'https://www.youtube.com/embed/u_pj9RP1ByM',
     explanation:`
 <p>Любая 3D модель начинается с простой формы. Стул можно сделать из 5 кубов!</p>
 <h4>План:</h4>
@@ -835,7 +835,7 @@ void OnTriggerEnter(Collider other) {
 
   { id:'blender_3', lang:'blender', title:'Анимация по ключевым кадрам',
     description:'Заставляем персонажа двигаться.',
-    video:'https://www.youtube.com/embed/B0J27sf9N1Y',
+    video:'https://www.youtube.com/embed/U1C98Ywt7Fo',
     explanation:`
 <p>️ <b>Ключевой кадр</b> (keyframe) — это «снимок» положения объекта в определённый момент.</p>
 <h4>Простая анимация:</h4>
@@ -850,7 +850,7 @@ void OnTriggerEnter(Collider other) {
   // ===== DATA SCIENCE =====
   { id:'ds_1', lang:'datascience', title:'pandas — работа с данными',
     description:'Загружаем CSV, считаем статистику.',
-    video:'https://www.youtube.com/embed/vmEHCJofslg',
+    video:'https://www.youtube.com/embed/iX28sWsAT4Y',
     explanation:`
 <pre>import pandas as pd
 
@@ -867,7 +867,7 @@ print("Лучший:", best["name"])</pre>
 
   { id:'ds_2', lang:'datascience', title:'matplotlib — графики',
     description:'Рисуем столбчатые и линейные графики.',
-    video:'https://www.youtube.com/embed/vmEHCJofslg',
+    video:'https://www.youtube.com/embed/dd3RcafdOQk',
     explanation:`
 <pre>import matplotlib.pyplot as plt
 
@@ -884,7 +884,7 @@ plt.show()</pre>
 
   { id:'ds_3', lang:'datascience', title:'Олимпиадные задачи',
     description:'Логика, скорость, разбор.',
-    video:'https://www.youtube.com/embed/_KvxJaUNZ2c',
+    video:'https://www.youtube.com/embed/Ir3LpiCcMrI',
     explanation:`
 <p>Олимпиадные задачи учат <b>думать</b>. Здесь важен не код, а идея решения!</p>
 <h4>Часто встречающиеся техники:</h4>

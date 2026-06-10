@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Задача — КУРСОР</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="https://salamalekum.sirv.com/_1_1.png.webp">
+<link rel="icon" href="/uploads/mascot/happy.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -40,11 +40,18 @@ async function init() {
   }
 }
 
+const typeIcons = {
+  quiz:    '<img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:16px;height:16px;vertical-align:-3px">',
+  fill:    '<img src="https://cdn-icons-png.flaticon.com/512/1250/1250615.png" style="width:16px;height:16px;vertical-align:-3px">',
+  order:   '<img src="https://cdn-icons-png.flaticon.com/512/10209/10209063.png" style="width:16px;height:16px;vertical-align:-3px">',
+  code:    '<img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:16px;height:16px;vertical-align:-3px">',
+  project: '<img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:16px;height:16px;vertical-align:-3px">',
+};
+const typeNames = { quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект' };
+const points = { quiz:10, fill:15, order:20, code:25, project:50 };
+
 function render() {
   const { task, mod, lang } = state;
-  const typeIcons = { quiz:'📝', fill:'✏️', order:'🔀', code:'💻', project:'🏆' };
-  const typeNames = { quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект' };
-  const points = { quiz:10, fill:15, order:20, code:25, project:50 };
 
   document.getElementById('content').innerHTML = `
     <div style="margin-bottom:18px">
@@ -53,42 +60,46 @@ function render() {
 
     <div class="task-layout">
       <div class="task-info-panel">
-        ${lang ? `<span class="lang-badge ${lang.class}" style="margin-bottom:8px">${lang.emoji} ${lang.name}</span>` : ''}
+        ${lang ? `<span class="lang-badge ${lang.class}" style="margin-bottom:8px"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
         <h1 style="margin-bottom:6px">${escapeHtml(task.title)}</h1>
-        <div style="color:#64748b;font-size:14px;margin-bottom:14px">
-          ${typeIcons[task.type]} ${typeNames[task.type]} · ⭐ ${points[task.type]} очков · ${'★'.repeat(task.difficulty||1)}
+        <div style="color:#64748b;font-size:14px;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+          ${typeIcons[task.type]} ${typeNames[task.type]}
+          <span style="color:#cbd5e1">·</span>
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:14px;height:14px;vertical-align:-2px"> ${points[task.type]} очков
+          <span style="color:#cbd5e1">·</span>
+          ${'★'.repeat(task.difficulty||1)}
         </div>
 
         ${mod ? `
         <div class="mascot-bubble">
           <img src="${KURSOR_DB.MASCOT.explain}" alt="">
           <div class="speech">
-            <b>📖 Тема: ${escapeHtml(mod.title)}</b>
+            <b>Тема: ${escapeHtml(mod.title)}</b>
             <div style="margin-top:8px">${mod.explanation || mod.description || ''}</div>
             ${mod.video ? `<div class="video-embed"><iframe src="${mod.video}" allowfullscreen></iframe></div>` : ''}
           </div>
         </div>` : ''}
 
         <div class="task-explanation">
-          <h4>🎯 Задание</h4>
+          <h4 style="display:flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/1087/1087927.png" style="width:18px;height:18px"> Задание</h4>
           <p style="white-space:pre-wrap">${escapeHtml(task.description)}</p>
         </div>
 
         ${task.explain ? `
         <div id="hintWrap">
-          <div class="hint-block locked" onclick="useHint()">
-            💡 Открыть подсказку (−5 очков)
+          <div class="hint-block locked" onclick="useHint()" style="display:flex;align-items:center;gap:8px">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:16px;height:16px"> Открыть подсказку (−5 очков)
           </div>
         </div>` : ''}
       </div>
 
       <div class="solver-panel">
-        <h3 style="margin-bottom:12px">✍️ Твой ответ</h3>
+        <h3 style="margin-bottom:12px">Твой ответ</h3>
         ${renderSolver(task)}
         <div id="feedback"></div>
         <div style="margin-top:16px;display:flex;gap:10px">
-          <button class="btn btn-lg btn-success" id="checkBtn" onclick="checkAnswer()">✅ Проверить</button>
-          <button class="btn btn-outline" onclick="location.reload()">🔄 Сбросить</button>
+          <button class="btn btn-lg btn-success" id="checkBtn" onclick="checkAnswer()">Проверить</button>
+          <button class="btn btn-outline" onclick="location.reload()">Сбросить</button>
         </div>
       </div>
     </div>
@@ -121,16 +132,16 @@ function renderSolver(task) {
           <code style="display:block;background:#1e293b;color:#a7f3d0;padding:8px;border-radius:6px;margin-top:6px;white-space:pre-wrap">${escapeHtml(task.expectedOutput || '')}</code>
         </p>
         <textarea class="code-input" id="codeInput" spellcheck="false">${escapeHtml(task.starter || '')}</textarea>
-        <div style="margin-top:10px;display:flex;gap:8px">
-          <button class="btn btn-outline" onclick="runPython()" id="runBtn">▶️ Запустить</button>
-          <span id="runStatus" style="align-self:center;color:#64748b;font-size:13px"></span>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline" onclick="runPython()" id="runBtn" style="display:flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:16px;height:16px"> Запустить</button>
+          <span id="runStatus" style="color:#64748b;font-size:13px"></span>
         </div>
         <div id="runOutput" style="margin-top:10px"></div>`;
     case 'project':
       return `
         <p style="margin-bottom:10px;color:#64748b">Загрузи ссылку на проект, опиши что сделал или вставь скриншот:</p>
         <textarea class="form-input" id="projectInput" rows="6" placeholder="Ссылка на Scratch, GitHub, описание…" style="font-family:inherit;resize:vertical"></textarea>
-        <p style="font-size:13px;color:#64748b;margin-top:10px">📝 Учитель проверит твой проект и поставит оценку.</p>`;
+        <p style="font-size:13px;color:#64748b;margin-top:10px">Учитель проверит твой проект и поставит оценку.</p>`;
   }
 }
 
@@ -176,14 +187,15 @@ function renderDrag() {
 function useHint() {
   state.hintUsed = true;
   document.getElementById('hintWrap').innerHTML = `
-    <div class="hint-block">
-      <b>💡 Подсказка:</b> ${escapeHtml(state.task.explain)}
+    <div class="hint-block" style="display:flex;align-items:flex-start;gap:8px">
+      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:16px;height:16px;margin-top:2px">
+      <div><b>Подсказка:</b> ${escapeHtml(state.task.explain)}</div>
     </div>`;
 }
 
-async function recordCompleteSafe(taskId, points, usedHint, submission) {
+async function recordCompleteSafe(taskId, pts, usedHint, submission) {
   if (user.role !== 'student') return;
-  try { state.progress = await API.recordComplete(taskId, points, usedHint, submission); }
+  try { state.progress = await API.recordComplete(taskId, pts, usedHint, submission); }
   catch (e) { console.error(e); }
 }
 
@@ -194,7 +206,6 @@ async function recordAttemptSafe(taskId) {
 
 async function checkAnswer() {
   const task = state.task;
-  const points = { quiz:10, fill:15, order:20, code:25, project:50 };
   let correct = false, userAnswer = null;
 
   switch (task.type) {
@@ -224,7 +235,7 @@ async function checkAnswer() {
       const pv = document.getElementById('projectInput').value.trim();
       if (pv.length < 10) { showFeedback(false, 'Опиши подробнее (мин. 10 символов).'); return; }
       await recordCompleteSafe(task.id, points.project, state.hintUsed, pv);
-      showFeedback(true, '✅ Проект отправлен учителю на проверку!');
+      showFeedback(true, 'Проект отправлен учителю на проверку!');
       fireConfetti();
       return;
   }
@@ -235,10 +246,10 @@ async function checkAnswer() {
     let pts = points[task.type];
     if (!state.hintUsed) pts += 5;
     await recordCompleteSafe(task.id, pts, state.hintUsed);
-    showFeedback(true, `🎉 Правильно! +${pts} очков${state.hintUsed ? '' : ' (бонус за решение без подсказки!)'}`);
+    showFeedback(true, `Правильно! +${pts} очков${state.hintUsed ? '' : ' (бонус за решение без подсказки!)'}`);
     fireConfetti();
   } else {
-    showFeedback(false, task.explain ? `❌ Не совсем. ${task.explain}` : '❌ Попробуй ещё раз!');
+    showFeedback(false, task.explain ? `Не совсем. ${task.explain}` : 'Попробуй ещё раз!');
   }
 }
 
@@ -248,7 +259,7 @@ function showFeedback(success, msg) {
       <img class="mascot-sm" src="${success ? KURSOR_DB.MASCOT.happy : KURSOR_DB.MASCOT.sad}" alt="Маскот">
       <div>
         <div style="font-size:16px;margin-bottom:4px">${msg}</div>
-        ${success ? `<a href="/pages/catalog.html" class="btn btn-success" style="margin-top:8px">📚 Ещё задачу!</a>` : ''}
+        ${success ? `<a href="/pages/catalog.html" class="btn btn-success" style="margin-top:8px">Ещё задачу!</a>` : ''}
       </div>
     </div>`;
 }
@@ -256,7 +267,7 @@ function showFeedback(success, msg) {
 let pyodide = null;
 async function loadPyodide_() {
   if (pyodide) return pyodide;
-  document.getElementById('runStatus').textContent = '⏳ Загружаю Python...';
+  document.getElementById('runStatus').textContent = 'Загружаю Python...';
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
   document.body.appendChild(script);
@@ -270,14 +281,14 @@ async function runPython(autoCheck = false) {
   const task = state.task;
   const code = document.getElementById('codeInput').value;
   const out = document.getElementById('runOutput');
-  document.getElementById('runStatus').textContent = '⏳ Подготовка...';
+  document.getElementById('runStatus').textContent = 'Подготовка...';
   try {
     await loadPyodide_();
     pyodide.setStdout({ batched: (s) => { window._pyOut += s + '\n'; } });
     window._pyOut = '';
-    document.getElementById('runStatus').textContent = '🐍 Выполняю...';
+    document.getElementById('runStatus').textContent = 'Выполняю...';
     pyodide.runPython(code);
-    document.getElementById('runStatus').textContent = '✅ Готово';
+    document.getElementById('runStatus').textContent = 'Готово';
     const result = (window._pyOut || '').trim();
     out.innerHTML = `<div style="background:#1e293b;color:#a7f3d0;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">${escapeHtml(result || '(нет вывода)')}</div>`;
 
@@ -288,15 +299,15 @@ async function runPython(autoCheck = false) {
       if (correct) {
         let pts = 25; if (!state.hintUsed) pts += 5;
         await recordCompleteSafe(task.id, pts, state.hintUsed);
-        showFeedback(true, `🎉 Идеально! Вывод совпадает. +${pts} очков`);
+        showFeedback(true, `Идеально! Вывод совпадает. +${pts} очков`);
         fireConfetti();
       } else if (autoCheck) {
-        showFeedback(false, `❌ Вывод не совпадает с ожидаемым. Проверь логику.`);
+        showFeedback(false, 'Вывод не совпадает с ожидаемым. Проверь логику.');
       }
     }
   } catch (e) {
     document.getElementById('runStatus').textContent = '';
-    out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">⚠️ Ошибка: ${escapeHtml(e.message)}</div>`;
+    out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">Ошибка: ${escapeHtml(e.message)}</div>`;
   }
 }
 </script>

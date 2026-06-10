@@ -16,20 +16,20 @@ const LOGO = 'https://salamalekum.sirv.com/_1_1.png.webp';
 
 /* ===== ЯЗЫКИ / ТЕХНОЛОГИИ ===== */
 const LANGS = {
-  scratch:    { name: 'Scratch',          emoji: '🐱', icon:'https://cdn-icons-png.flaticon.com/512/919/919847.png', class: 'lang-scratch',     group: 1 },
-  blockly:    { name: 'Blockly',          emoji: '🟦', icon:'https://cdn-icons-png.flaticon.com/512/919/919847.png', class: 'lang-blockly',     group: 1 },
-  minecraft:  { name: 'Minecraft Edu',    emoji: '⛏️', icon:'https://cdn-icons-png.flaticon.com/512/871/871381.png', class: 'lang-minecraft',   group: 1 },
-  design:     { name: 'Дизайн/Анимация',  emoji: '🎨', icon:'https://cdn-icons-png.flaticon.com/512/681/681443.png', class: 'lang-design',      group: 1 },
-  html:       { name: 'HTML / CSS',        emoji: '🌐', icon:'https://cdn-icons-png.flaticon.com/512/732/732212.png', class: 'lang-html',        group: 2 },
-  python:     { name: 'Python',            emoji: '🐍', icon:'https://cdn-icons-png.flaticon.com/512/5968/5968350.png', class: 'lang-python',      group: 2 },
-  roblox:     { name: 'Roblox Lua',        emoji: '🎮', icon:'https://cdn-icons-png.flaticon.com/512/871/871381.png', class: 'lang-roblox',      group: 2 },
-  cyber:      { name: 'Кибербезопасность', emoji: '🔒', icon:'https://cdn-icons-png.flaticon.com/512/2913/2913133.png', class: 'lang-cyber',       group: 2 },
-  pythonpro:  { name: 'Python Pro',        emoji: '🐍', icon:'https://cdn-icons-png.flaticon.com/512/5968/5968350.png', class: 'lang-python',      group: 3 },
-  java:       { name: 'Java',              emoji: '☕', icon:'https://cdn-icons-png.flaticon.com/512/226/226777.png', class: 'lang-java',        group: 3 },
-  cpp:        { name: 'C++',               emoji: '⚙️', icon:'https://cdn-icons-png.flaticon.com/512/6132/6132222.png', class: 'lang-cpp',         group: 3 },
-  unity:      { name: 'Unity / C#',        emoji: '🎮', icon:'https://cdn-icons-png.flaticon.com/512/871/871381.png', class: 'lang-unity',       group: 3 },
-  blender:    { name: 'Blender 3D',        emoji: '🎬', icon:'https://cdn-icons-png.flaticon.com/512/3522/3522135.png', class: 'lang-blender',     group: 3 },
-  datascience:{ name: 'Data Science',      emoji: '📊', icon:'https://cdn-icons-png.flaticon.com/512/2920/2920277.png', class: 'lang-datascience', group: 3 },
+  scratch:    { name: 'Scratch',          icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/scratch/scratch-original.svg',   class: 'lang-scratch',     group: 1 },
+  blockly:    { name: 'Blockly',          icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg',     class: 'lang-blockly',     group: 1 },
+  minecraft:  { name: 'Minecraft Edu',    icon:'https://cdn-icons-png.flaticon.com/512/871/871381.png',                             class: 'lang-minecraft',   group: 1 },
+  design:     { name: 'Дизайн/Анимация',  icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg',       class: 'lang-design',      group: 1 },
+  html:       { name: 'HTML / CSS',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',       class: 'lang-html',        group: 2 },
+  python:     { name: 'Python',           icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',     class: 'lang-python',      group: 2 },
+  roblox:     { name: 'Roblox Lua',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/lua/lua-original.svg',           class: 'lang-roblox',      group: 2 },
+  cyber:      { name: 'Кибербезопасность',icon:'https://cdn-icons-png.flaticon.com/512/2913/2913133.png',                           class: 'lang-cyber',       group: 2 },
+  pythonpro:  { name: 'Python Pro',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',     class: 'lang-python',      group: 3 },
+  java:       { name: 'Java',             icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',         class: 'lang-java',        group: 3 },
+  cpp:        { name: 'C++',              icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',class: 'lang-cpp',         group: 3 },
+  unity:      { name: 'Unity / C#',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/unity/unity-original.svg',       class: 'lang-unity',       group: 3 },
+  blender:    { name: 'Blender 3D',       icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/blender/blender-original.svg',   class: 'lang-blender',     group: 3 },
+  datascience:{ name: 'Data Science',     icon:'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jupyter/jupyter-original.svg',   class: 'lang-datascience', group: 3 },
 };
 
 const GROUPS = {
@@ -47,42 +47,42 @@ const MODULES = [
     description:'Учимся двигать кота, менять костюм и держать его на сцене.',
     video:'https://www.youtube.com/embed/jXUZaf5D12A',
     explanation:`
-<p>👋 Привет! Сегодня мы научимся <b>управлять котом</b> в Scratch!</p>
+<p>Привет! Сегодня мы научимся <b>управлять котом</b> в Scratch!</p>
 <p>Scratch — это среда, где код собирается из <b>цветных блоков</b>, как из конструктора Lego. Никаких сложных слов писать не надо!</p>
-<h4>🔹 Основные блоки движения:</h4>
+<h4>Основные блоки движения:</h4>
 <ul>
   <li><code>идти 10 шагов</code> — кот двигается вперёд</li>
   <li><code>повернуть на 15 градусов</code> — кот поворачивается</li>
   <li><code>если касается края, оттолкнуться</code> — кот не падает со сцены</li>
   <li><code>следующий костюм</code> — кот меняет позу (как анимация)</li>
 </ul>
-<h4>🔹 Как запустить?</h4>
-<p>В Scratch есть зелёный флажок 🟢. Поставь сверху блок «Когда нажат зелёный флажок» — и всё что ниже будет работать!</p>
+<h4>Как запустить?</h4>
+<p>В Scratch есть зелёный флажок . Поставь сверху блок «Когда нажат зелёный флажок» — и всё что ниже будет работать!</p>
 ` },
 
   { id:'scratch_2', lang:'scratch', title:'Условия (если...то)',
     description:'Учим кота реагировать на клавиши и касания.',
     video:'https://www.youtube.com/embed/imnxTQPCEM8',
     explanation:`
-<p>🤔 Условия — это когда программа <b>думает</b> и решает что делать дальше.</p>
+<p>Условия — это когда программа <b>думает</b> и решает что делать дальше.</p>
 <p>Например: <i>"Если идёт дождь — взять зонтик. Иначе — идти так".</i></p>
-<h4>🔹 Блоки условий в Scratch:</h4>
+<h4>Блоки условий в Scratch:</h4>
 <ul>
   <li><code>если &lt;...&gt; то</code> — делать что-то ТОЛЬКО если условие верно</li>
   <li><code>если &lt;...&gt; то ... иначе ...</code> — выбор из двух вариантов</li>
   <li><code>клавиша [пробел] нажата?</code> — проверка кнопки</li>
   <li><code>касается края?</code> или <code>касается спрайт2?</code> — проверка касания</li>
 </ul>
-<p>💡 Совет: условия часто помещают внутрь блока «всегда», чтобы программа постоянно проверяла что происходит.</p>
+<p>Совет: условия часто помещают внутрь блока «всегда», чтобы программа постоянно проверяла что происходит.</p>
 ` },
 
   { id:'scratch_3', lang:'scratch', title:'Циклы (повторения)',
     description:'Учимся повторять действия без копирования блоков.',
     video:'https://www.youtube.com/embed/jXUZaf5D12A',
     explanation:`
-<p>🔄 Цикл — это когда мы хотим, чтобы программа <b>повторила</b> что-то несколько раз.</p>
+<p>Цикл — это когда мы хотим, чтобы программа <b>повторила</b> что-то несколько раз.</p>
 <p>Например: нарисовать квадрат — нужно 4 раза пройти прямо и повернуться на 90°. Без цикла пришлось бы поставить 8 блоков подряд. С циклом — всего 3!</p>
-<h4>🔹 Виды циклов:</h4>
+<h4>Виды циклов:</h4>
 <ul>
   <li><code>повторить 10 раз</code> — точное количество повторений</li>
   <li><code>всегда</code> — бесконечное повторение (пока не остановим)</li>
@@ -95,15 +95,15 @@ const MODULES = [
     description:'Создаём счёт очков и таймер.',
     video:'https://www.youtube.com/embed/jXUZaf5D12A',
     explanation:`
-<p>📦 Переменная — это <b>коробочка</b> с именем, в которую можно положить число или слово.</p>
+<p>Переменная — это <b>коробочка</b> с именем, в которую можно положить число или слово.</p>
 <p>В играх переменные нужны для: счёта очков, жизней, таймера, здоровья.</p>
-<h4>🔹 Как создать?</h4>
+<h4>Как создать?</h4>
 <ol>
   <li>В разделе «Переменные» нажми <b>Создать переменную</b></li>
   <li>Дай имя: например <code>очки</code></li>
   <li>Используй блоки: <code>задать [очки] = 0</code>, <code>изменить [очки] на 1</code></li>
 </ol>
-<h4>🔹 Пример: счётчик яблок</h4>
+<h4>Пример: счётчик яблок</h4>
 <p>Когда кот касается яблока → изменить «очки» на 1. Когда «очки» = 10 → показать «Победа!»</p>
 ` },
 
@@ -112,7 +112,7 @@ const MODULES = [
     description:'Учим робота идти по лабиринту шаг за шагом.',
     video:'https://www.youtube.com/embed/Vp3VzVPDc7E',
     explanation:`
-<p>🤖 Алгоритм — это <b>план действий</b>, чёткая последовательность шагов.</p>
+<p>Алгоритм — это <b>план действий</b>, чёткая последовательность шагов.</p>
 <p>Например, чтобы съесть бутерброд: 1) взять хлеб, 2) намазать масло, 3) положить сыр, 4) откусить.</p>
 <p>В Blockly есть робот, и мы пишем для него план:</p>
 <ul>
@@ -120,7 +120,7 @@ const MODULES = [
   <li><code>повернуть налево</code> / <code>направо</code></li>
   <li><code>прыжок</code></li>
 </ul>
-<p>💡 Главное правило: робот делает только то, что мы сказали. Если забудем повернуть — врежется в стену!</p>
+<p>Главное правило: робот делает только то, что мы сказали. Если забудем повернуть — врежется в стену!</p>
 ` },
 
   { id:'blockly_2', lang:'blockly', title:'Циклы в лабиринте',
@@ -129,7 +129,7 @@ const MODULES = [
     explanation:`
 <p>Зачем ставить 5 одинаковых блоков «шаг вперёд», если можно сказать роботу: <b>«повторить шаг 5 раз»</b>?</p>
 <p>Это и есть цикл — мы экономим место и делаем программу красивее.</p>
-<h4>🔹 Блок повторения:</h4>
+<h4>Блок повторения:</h4>
 <pre>повторить 5 раз:
    шаг вперёд</pre>
 <p>Также есть умный цикл <b>«повторять пока не дойдёшь до финиша»</b> — робот сам остановится в нужном месте.</p>
@@ -139,7 +139,7 @@ const MODULES = [
     description:'Робот сам решает: повернуть или собрать монету.',
     video:'https://www.youtube.com/embed/Vp3VzVPDc7E',
     explanation:`
-<p>🧠 Условие помогает роботу <b>принимать решение</b>.</p>
+<p>Условие помогает роботу <b>принимать решение</b>.</p>
 <ul>
   <li><code>если впереди стена → повернуть направо</code></li>
   <li><code>если на клетке монета → собрать</code></li>
@@ -153,7 +153,7 @@ const MODULES = [
     description:'Что такое X, Y, Z и как найти блок в мире.',
     video:'https://www.youtube.com/embed/2QXm9rDqXm0',
     explanation:`
-<p>🌍 В Minecraft мир — это <b>3D-пространство</b>. У каждого блока есть свой адрес — координаты:</p>
+<p>В Minecraft мир — это <b>3D-пространство</b>. У каждого блока есть свой адрес — координаты:</p>
 <ul>
   <li><b>X</b> — куда идём (восток ↔ запад)</li>
   <li><b>Y</b> — высота (вверх ↕ вниз)</li>
@@ -167,15 +167,15 @@ const MODULES = [
     description:'Программируем агента строить дом и сажать деревья.',
     video:'https://www.youtube.com/embed/2QXm9rDqXm0',
     explanation:`
-<p>🤖 <b>Агент</b> — это твой помощник-робот в Minecraft Education. Ему можно давать команды в коде!</p>
-<h4>🔹 Основные команды агента (на блоках или Python):</h4>
+<p><b>Агент</b> — это твой помощник-робот в Minecraft Education. Ему можно давать команды в коде!</p>
+<h4>Основные команды агента (на блоках или Python):</h4>
 <ul>
   <li><code>agent.move("forward", 5)</code> — пройти 5 шагов вперёд</li>
   <li><code>agent.turn("left")</code> — повернуть налево</li>
   <li><code>agent.place("forward")</code> — положить блок</li>
   <li><code>agent.till("down")</code> — вспахать землю</li>
 </ul>
-<p>💡 Чтобы построить стену 5 блоков — используй цикл: повторить 5 раз → положить блок → шаг вперёд.</p>
+<p>Чтобы построить стену 5 блоков — используй цикл: повторить 5 раз → положить блок → шаг вперёд.</p>
 ` },
 
   // ===== DESIGN =====
@@ -183,9 +183,9 @@ const MODULES = [
     description:'Рисуем персонажа из квадратиков 16×16.',
     video:'https://www.youtube.com/embed/p7TwjJh-_Sw',
     explanation:`
-<p>🎨 Пиксель-арт — это рисунки из <b>квадратиков</b> (пикселей). Так выглядят старые игры на Денди!</p>
+<p>Пиксель-арт — это рисунки из <b>квадратиков</b> (пикселей). Так выглядят старые игры на Денди!</p>
 <p>Размер 16×16 — это очень популярный формат: помещается персонаж, но не слишком сложно.</p>
-<h4>🔹 Правила хорошего пиксель-арта:</h4>
+<h4>Правила хорошего пиксель-арта:</h4>
 <ol>
   <li>Используй мало цветов (4–6 достаточно)</li>
   <li>Сначала рисуй контур, потом заливай</li>
@@ -198,9 +198,9 @@ const MODULES = [
     description:'Делаем GIF из нескольких рисунков.',
     video:'https://www.youtube.com/embed/p7TwjJh-_Sw',
     explanation:`
-<p>🎬 Анимация — это <b>много картинок</b> подряд, которые быстро меняются. Так появляется движение!</p>
+<p>Анимация — это <b>много картинок</b> подряд, которые быстро меняются. Так появляется движение!</p>
 <p>Один кадр = одна картинка. В мультфильме 24 кадра в секунду.</p>
-<h4>🔹 Простая анимация ходьбы:</h4>
+<h4>Простая анимация ходьбы:</h4>
 <ul>
   <li>Кадр 1: ноги вместе</li>
   <li>Кадр 2: правая нога вперёд</li>
@@ -215,8 +215,8 @@ const MODULES = [
     description:'Базовые теги HTML: заголовки, абзацы, списки, ссылки.',
     video:'https://www.youtube.com/embed/Wm6CUkswsNw',
     explanation:`
-<p>🌐 HTML — это <b>язык разметки</b>. С его помощью мы говорим браузеру: «здесь заголовок, здесь картинка, здесь ссылка».</p>
-<h4>🔹 Основные теги:</h4>
+<p>HTML — это <b>язык разметки</b>. С его помощью мы говорим браузеру: «здесь заголовок, здесь картинка, здесь ссылка».</p>
+<h4>Основные теги:</h4>
 <pre>&lt;h1&gt;Большой заголовок&lt;/h1&gt;
 &lt;p&gt;Это обычный абзац текста.&lt;/p&gt;
 &lt;ul&gt;
@@ -225,19 +225,19 @@ const MODULES = [
 &lt;/ul&gt;
 &lt;a href="https://google.com"&gt;Гугл&lt;/a&gt;
 &lt;strong&gt;Жирный текст&lt;/strong&gt;</pre>
-<p>⚠️ <b>Важно:</b> каждый тег нужно <u>закрывать</u>! Открыли <code>&lt;p&gt;</code> — обязательно поставьте <code>&lt;/p&gt;</code>.</p>
+<p><b>Важно:</b> каждый тег нужно <u>закрывать</u>! Открыли <code>&lt;p&gt;</code> — обязательно поставьте <code>&lt;/p&gt;</code>.</p>
 ` },
 
   { id:'html_2', lang:'html', title:'Картинки и таблицы',
     description:'Вставка изображений и создание таблиц.',
     video:'https://www.youtube.com/embed/Wm6CUkswsNw',
     explanation:`
-<p>🖼️ Чтобы вставить картинку: <code>&lt;img src="cat.jpg" alt="Котик"&gt;</code></p>
+<p>️ Чтобы вставить картинку: <code>&lt;img src="cat.jpg" alt="Котик"&gt;</code></p>
 <ul>
   <li><b>src</b> — путь к файлу или ссылка из интернета</li>
   <li><b>alt</b> — описание (если картинка не загрузится)</li>
 </ul>
-<h4>🔹 Таблица:</h4>
+<h4>Таблица:</h4>
 <pre>&lt;table&gt;
   &lt;tr&gt;&lt;th&gt;Урок&lt;/th&gt;&lt;th&gt;Время&lt;/th&gt;&lt;/tr&gt;
   &lt;tr&gt;&lt;td&gt;Математика&lt;/td&gt;&lt;td&gt;9:00&lt;/td&gt;&lt;/tr&gt;
@@ -249,8 +249,8 @@ const MODULES = [
     description:'Меняем цвета, шрифты и размеры.',
     video:'https://www.youtube.com/embed/1Rs2ND1ryYc',
     explanation:`
-<p>🎨 CSS = <b>красота</b> HTML. С помощью CSS делаем сайт цветным и красивым.</p>
-<h4>🔹 Базовый синтаксис:</h4>
+<p>CSS = <b>красота</b> HTML. С помощью CSS делаем сайт цветным и красивым.</p>
+<h4>Базовый синтаксис:</h4>
 <pre>селектор {
   свойство: значение;
 }
@@ -260,7 +260,7 @@ p {
   font-size: 18px;
   background: yellow;
 }</pre>
-<h4>🔹 Самые нужные свойства:</h4>
+<h4>Самые нужные свойства:</h4>
 <ul>
   <li><code>color</code> — цвет текста</li>
   <li><code>background</code> — фон</li>
@@ -275,7 +275,7 @@ p {
     description:'Делаем элементы в ряд и в сетку.',
     video:'https://www.youtube.com/embed/3YW65K6LcIA',
     explanation:`
-<p>📐 Flexbox — это супер-инструмент CSS, чтобы располагать элементы в ряд или в столбик.</p>
+<p>Flexbox — это супер-инструмент CSS, чтобы располагать элементы в ряд или в столбик.</p>
 <pre>.container {
   display: flex;
   gap: 20px;
@@ -295,15 +295,15 @@ p {
     description:'Первый код на Python: вывод и хранение данных.',
     video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
     explanation:`
-<p>🐍 Python — это самый <b>понятный язык программирования</b>. Код выглядит как обычный английский!</p>
-<h4>🔹 Вывод на экран:</h4>
+<p>Python — это самый <b>понятный язык программирования</b>. Код выглядит как обычный английский!</p>
+<h4>Вывод на экран:</h4>
 <pre>print("Привет, мир!")
 print("Меня зовут Аян")</pre>
-<h4>🔹 Переменные — коробочки для данных:</h4>
+<h4>Переменные — коробочки для данных:</h4>
 <pre>name = "Аян"
 age = 10
 print("Меня зовут", name, "мне", age, "лет")</pre>
-<h4>🔹 Математика:</h4>
+<h4>Математика:</h4>
 <pre>a = 5
 b = 3
 print(a + b)   # 8
@@ -316,32 +316,32 @@ print(a / b)   # 1.666...</pre>
     description:'Программа сама принимает решения.',
     video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
     explanation:`
-<p>🤔 Условия позволяют программе <b>выбирать</b> что делать.</p>
+<p>Условия позволяют программе <b>выбирать</b> что делать.</p>
 <pre>age = 12
 if age >= 7:
     print("Можно идти в школу")
 else:
     print("Ещё рано")</pre>
-<h4>🔹 Операторы сравнения:</h4>
+<h4>Операторы сравнения:</h4>
 <ul>
   <li><code>==</code> равно (внимание: 2 знака!)</li>
   <li><code>!=</code> не равно</li>
   <li><code>&gt;</code> больше, <code>&lt;</code> меньше</li>
   <li><code>&gt;=</code> больше или равно, <code>&lt;=</code> меньше или равно</li>
 </ul>
-<p>⚠️ <b>Важно:</b> в Python отступы (пробелы в начале строки) — это часть кода! Они показывают, что строка внутри <code>if</code>.</p>
+<p><b>Важно:</b> в Python отступы (пробелы в начале строки) — это часть кода! Они показывают, что строка внутри <code>if</code>.</p>
 ` },
 
   { id:'python_3', lang:'python', title:'Циклы for и while',
     description:'Повторяем код много раз.',
     video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
     explanation:`
-<p>🔁 Цикл — чтобы не писать одно и то же 100 раз.</p>
-<h4>🔹 for — точное количество раз:</h4>
+<p>Цикл — чтобы не писать одно и то же 100 раз.</p>
+<h4>for — точное количество раз:</h4>
 <pre>for i in range(5):
     print("Привет!", i)</pre>
 <p>Выведет: <code>Привет! 0, Привет! 1, ... Привет! 4</code></p>
-<h4>🔹 while — пока условие верно:</h4>
+<h4>while — пока условие верно:</h4>
 <pre>n = 10
 while n > 0:
     print(n)
@@ -354,8 +354,8 @@ print("Старт!")</pre>
     description:'Длина, поиск букв, переворот слов.',
     video:'https://www.youtube.com/embed/_uQrJ0TkZlc',
     explanation:`
-<p>📝 Строка — это любой текст в кавычках: <code>"привет"</code>.</p>
-<h4>🔹 Полезные операции:</h4>
+<p>Строка — это любой текст в кавычках: <code>"привет"</code>.</p>
+<h4>Полезные операции:</h4>
 <pre>s = "программирование"
 print(len(s))         # 16 — длина
 print(s.upper())      # ПРОГРАММИРОВАНИЕ
@@ -364,7 +364,7 @@ print(s[-1])          # е — последняя
 print(s[::-1])        # переворот: еинавориммаргорп
 print(s.count("р"))   # 3 — сколько раз "р"
 print("грамм" in s)   # True — содержится ли</pre>
-<p>💡 Палиндром — это слово, которое читается одинаково в обе стороны (мадам, шалаш).</p>
+<p>Палиндром — это слово, которое читается одинаково в обе стороны (мадам, шалаш).</p>
 ` },
 
   // ===== ROBLOX =====
@@ -372,23 +372,23 @@ print("грамм" in s)   # True — содержится ли</pre>
     description:'Знакомство с панелями редактора.',
     video:'https://www.youtube.com/embed/UFYxQwgWO_0',
     explanation:`
-<p>🎮 Roblox Studio — программа, в которой мы создаём свои игры.</p>
-<h4>🔹 Главные панели:</h4>
+<p>Roblox Studio — программа, в которой мы создаём свои игры.</p>
+<h4>Главные панели:</h4>
 <ul>
   <li><b>Explorer</b> — список всех объектов в мире (как файлы в папках)</li>
   <li><b>Properties</b> — свойства выбранного объекта (цвет, размер, позиция)</li>
   <li><b>Toolbox</b> — готовые модели и звуки (можно вставить в свой мир)</li>
   <li><b>Output</b> — окно с ошибками и сообщениями скриптов</li>
 </ul>
-<p>💡 Любой объект в Roblox = <b>Part</b> (кирпич). У него есть цвет, материал, размер и позиция.</p>
+<p>Любой объект в Roblox = <b>Part</b> (кирпич). У него есть цвет, материал, размер и позиция.</p>
 ` },
 
   { id:'roblox_2', lang:'roblox', title:'Скрипты на Lua',
     description:'Первые скрипты: свечение, очки за монеты.',
     video:'https://www.youtube.com/embed/UFYxQwgWO_0',
     explanation:`
-<p>📜 Lua — язык скриптов в Roblox. Чтобы добавить скрипт: правой кнопкой по Part → Insert Object → Script.</p>
-<h4>🔹 Светящийся кирпич при касании:</h4>
+<p>Lua — язык скриптов в Roblox. Чтобы добавить скрипт: правой кнопкой по Part → Insert Object → Script.</p>
+<h4>Светящийся кирпич при касании:</h4>
 <pre>local part = script.Parent
 
 part.Touched:Connect(function(hit)
@@ -403,8 +403,8 @@ end)</pre>
     description:'Учимся придумывать пароли, которые не взломают.',
     video:'https://www.youtube.com/embed/3NjQ9b3pgIg',
     explanation:`
-<p>🔒 Пароль — это ключ к твоему аккаунту. Если он плохой — взломщик войдёт за секунды!</p>
-<h4>🔹 Правила надёжного пароля:</h4>
+<p>Пароль — это ключ к твоему аккаунту. Если он плохой — взломщик войдёт за секунды!</p>
+<h4>Правила надёжного пароля:</h4>
 <ol>
   <li>Минимум 12 символов</li>
   <li>Большие И маленькие буквы</li>
@@ -412,40 +412,40 @@ end)</pre>
   <li>Спец-символы: !@#$%^&*</li>
   <li>НЕ дата рождения, НЕ имя, НЕ "123456"</li>
 </ol>
-<p>✅ Хороший: <code>Koshka_2025!Igraet</code></p>
-<p>❌ Плохой: <code>qwerty</code>, <code>password</code>, <code>123456</code></p>
-<p>💡 Совет: используй <b>менеджер паролей</b> (Bitwarden, 1Password) — он запомнит всё за тебя.</p>
+<p>Хороший: <code>Koshka_2025!Igraet</code></p>
+<p>Плохой: <code>qwerty</code>, <code>password</code>, <code>123456</code></p>
+<p>Совет: используй <b>менеджер паролей</b> (Bitwarden, 1Password) — он запомнит всё за тебя.</p>
 ` },
 
   { id:'cyber_2', lang:'cyber', title:'Фишинг — как не попасться',
     description:'Распознаём опасные письма и сайты.',
     video:'https://www.youtube.com/embed/o0btqyGWIQw',
     explanation:`
-<p>🎣 Фишинг — это когда мошенник делает <b>фальшивый сайт</b> или письмо, чтобы украсть твой пароль.</p>
-<h4>🔹 Признаки фишингового письма:</h4>
+<p>Фишинг — это когда мошенник делает <b>фальшивый сайт</b> или письмо, чтобы украсть твой пароль.</p>
+<h4>Признаки фишингового письма:</h4>
 <ul>
-  <li>📧 Подозрительный отправитель (например <code>support@gmai1.com</code> вместо <code>gmail.com</code>)</li>
-  <li>⚠️ Срочные угрозы: «Ваш аккаунт заблокируют через 24 часа!»</li>
-  <li>🔗 Странные ссылки (наведи мышку — посмотри куда ведёт)</li>
-  <li>📎 Подозрительные файлы (.exe, .zip от незнакомцев)</li>
-  <li>📝 Ошибки в тексте и плохой перевод</li>
+  <li>Подозрительный отправитель (например <code>support@gmai1.com</code> вместо <code>gmail.com</code>)</li>
+  <li>Срочные угрозы: «Ваш аккаунт заблокируют через 24 часа!»</li>
+  <li>Странные ссылки (наведи мышку — посмотри куда ведёт)</li>
+  <li>Подозрительные файлы (.exe, .zip от незнакомцев)</li>
+  <li>Ошибки в тексте и плохой перевод</li>
 </ul>
-<p>💡 Если сомневаешься — НЕ нажимай. Лучше открой сайт напрямую через адресную строку.</p>
+<p>Если сомневаешься — НЕ нажимай. Лучше открой сайт напрямую через адресную строку.</p>
 ` },
 
   { id:'cyber_3', lang:'cyber', title:'Как работают вирусы',
     description:'Откуда берутся вирусы и как защититься.',
     video:'https://www.youtube.com/embed/o0btqyGWIQw',
     explanation:`
-<p>🦠 Вирус — это <b>вредная программа</b>, которая может удалить файлы, украсть пароли или замедлить компьютер.</p>
-<h4>🔹 Как вирус попадает на ПК:</h4>
+<p>Вирус — это <b>вредная программа</b>, которая может удалить файлы, украсть пароли или замедлить компьютер.</p>
+<h4>Как вирус попадает на ПК:</h4>
 <ol>
   <li>Скачивание пиратских игр и программ</li>
   <li>Открытие вложений из неизвестных писем</li>
   <li>Подключение чужой флешки</li>
   <li>Клик по рекламе вроде "Поздравляем, вы выиграли iPhone!"</li>
 </ol>
-<h4>🔹 Защита:</h4>
+<h4>Защита:</h4>
 <ul>
   <li>Антивирус (Windows Defender, Kaspersky)</li>
   <li>Регулярные обновления Windows</li>
@@ -459,14 +459,14 @@ end)</pre>
     description:'Хранение коллекций данных.',
     video:'https://www.youtube.com/embed/W8KRzm-HUcc',
     explanation:`
-<p>📚 <b>Список</b> — упорядоченная коллекция элементов в квадратных скобках:</p>
+<p><b>Список</b> — упорядоченная коллекция элементов в квадратных скобках:</p>
 <pre>grades = [5, 4, 5, 3, 5, 4]
 print(grades[0])        # 5 (первый)
 print(len(grades))      # 6
 grades.append(5)        # добавить в конец
 grades.sort()           # отсортировать
 print(max(grades))      # лучшая оценка</pre>
-<p>📖 <b>Словарь</b> — пары "ключ: значение":</p>
+<p><b>Словарь</b> — пары "ключ: значение":</p>
 <pre>student = {"name": "Алия", "age": 13, "grade": 5}
 print(student["name"])  # Алия
 student["school"] = "КУРСОР"
@@ -478,27 +478,27 @@ for key, value in student.items():
     description:'Свои собственные команды.',
     video:'https://www.youtube.com/embed/W8KRzm-HUcc',
     explanation:`
-<p>⚙️ Функция = <b>именованный кусок кода</b>, который можно использовать много раз.</p>
+<p>Функция = <b>именованный кусок кода</b>, который можно использовать много раз.</p>
 <pre>def greet(name):
     print("Привет,", name, "!")
 
 greet("Алия")
 greet("Аян")
 greet("Айгерим")</pre>
-<h4>🔹 Возврат значения:</h4>
+<h4>Возврат значения:</h4>
 <pre>def square(x):
     return x * x
 
 result = square(5)   # 25
 print(square(10))    # 100</pre>
-<p>💡 Хорошие функции делают <b>одну</b> вещь и имеют понятное имя.</p>
+<p>Хорошие функции делают <b>одну</b> вещь и имеют понятное имя.</p>
 ` },
 
   { id:'pythonpro_3', lang:'pythonpro', title:'Файлы и CSV',
     description:'Читаем и пишем данные на диск.',
     video:'https://www.youtube.com/embed/W8KRzm-HUcc',
     explanation:`
-<p>💾 Программа может <b>сохранять</b> данные в файл и <b>читать</b> их обратно.</p>
+<p>Программа может <b>сохранять</b> данные в файл и <b>читать</b> их обратно.</p>
 <pre># Запись
 with open("notes.txt", "w") as f:
     f.write("Привет!\\n")
@@ -508,7 +508,7 @@ with open("notes.txt", "w") as f:
 with open("notes.txt", "r") as f:
     content = f.read()
     print(content)</pre>
-<h4>🔹 CSV (таблица):</h4>
+<h4>CSV (таблица):</h4>
 <pre>import csv
 with open("contacts.csv") as f:
     reader = csv.reader(f)
@@ -520,7 +520,7 @@ with open("contacts.csv") as f:
     description:'Создаём свои типы данных.',
     video:'https://www.youtube.com/embed/JeznW_7DlB0',
     explanation:`
-<p>🏗️ ООП (объектно-ориентированное программирование) — мощный способ организовать код.</p>
+<p>️ ООП (объектно-ориентированное программирование) — мощный способ организовать код.</p>
 <p><b>Класс</b> — это чертёж. <b>Объект</b> — реальная вещь по этому чертежу.</p>
 <pre>class Student:
     def __init__(self, name, grade):
@@ -541,7 +541,7 @@ s2.info()</pre>
     description:'Сортировка пузырьком и бинарный поиск.',
     video:'https://www.youtube.com/embed/Kg4bqzAqRBM',
     explanation:`
-<p>🔃 <b>Сортировка пузырьком:</b> сравниваем соседей и меняем местами, пока всё не упорядочится.</p>
+<p><b>Сортировка пузырьком:</b> сравниваем соседей и меняем местами, пока всё не упорядочится.</p>
 <pre>def bubble_sort(arr):
     n = len(arr)
     for i in range(n):
@@ -549,7 +549,7 @@ s2.info()</pre>
             if arr[j] > arr[j+1]:
                 arr[j], arr[j+1] = arr[j+1], arr[j]
     return arr</pre>
-<p>🔎 <b>Бинарный поиск:</b> ищем число в отсортированном списке, каждый раз делим пополам.</p>
+<p><b>Бинарный поиск:</b> ищем число в отсортированном списке, каждый раз делим пополам.</p>
 <pre>def binary_search(arr, target):
     lo, hi = 0, len(arr) - 1
     while lo <= hi:
@@ -565,7 +565,7 @@ s2.info()</pre>
     description:'Первая программа на Java, ввод данных.',
     video:'https://www.youtube.com/embed/eIrMbAQSU34',
     explanation:`
-<p>☕ Java — серьёзный язык, на котором написаны Minecraft и Android-приложения.</p>
+<p>Java — серьёзный язык, на котором написаны Minecraft и Android-приложения.</p>
 <pre>import java.util.Scanner;
 
 public class Main {
@@ -576,7 +576,7 @@ public class Main {
         System.out.println("Привет, " + name + "!");
     }
 }</pre>
-<p>⚠️ В Java каждая строка кода заканчивается <b>точкой с запятой</b> <code>;</code>. Это самая частая ошибка!</p>
+<p>В Java каждая строка кода заканчивается <b>точкой с запятой</b> <code>;</code>. Это самая частая ошибка!</p>
 ` },
 
   { id:'java_2', lang:'java', title:'ООП в Java',
@@ -663,7 +663,7 @@ int main() {
     cout << "Сумма: " << a + b << endl;
     return 0;
 }</pre>
-<h4>🔹 Типы:</h4>
+<h4>Типы:</h4>
 <ul>
   <li><code>int</code> — целое число</li>
   <li><code>float</code>/<code>double</code> — дробное</li>
@@ -717,7 +717,7 @@ double avg = (double)sum / arr.size();</pre>
     description:'Факториал, НОД, степень.',
     video:'https://www.youtube.com/embed/vLnPwxZdW4Y',
     explanation:`
-<p>🔁 Рекурсия — функция вызывает <b>сама себя</b>.</p>
+<p>Рекурсия — функция вызывает <b>сама себя</b>.</p>
 <pre>// Факториал
 int fact(int n) {
     if (n <= 1) return 1;
@@ -742,7 +742,7 @@ int power(int base, int exp) {
     description:'Из чего состоит объект в Unity.',
     video:'https://www.youtube.com/embed/IlKaB1etrik',
     explanation:`
-<p>🎮 В Unity <b>всё — это GameObject</b>. На него навешиваются компоненты:</p>
+<p>В Unity <b>всё — это GameObject</b>. На него навешиваются компоненты:</p>
 <ul>
   <li><b>Transform</b> — позиция, поворот, масштаб (есть всегда)</li>
   <li><b>Rigidbody</b> — физика (гравитация, столкновения)</li>
@@ -750,7 +750,7 @@ int power(int base, int exp) {
   <li><b>MeshRenderer</b> — что мы видим (форма)</li>
   <li><b>Script</b> — наш код на C#</li>
 </ul>
-<p>💡 Если объект «проваливается сквозь пол» — забыл добавить Collider!</p>
+<p>Если объект «проваливается сквозь пол» — забыл добавить Collider!</p>
 ` },
 
   { id:'unity_2', lang:'unity', title:'Скрипты C# в Unity',
@@ -797,8 +797,8 @@ void OnTriggerEnter(Collider other) {
     description:'Окна, режимы, горячие клавиши.',
     video:'https://www.youtube.com/embed/B0J27sf9N1Y',
     explanation:`
-<p>🎬 Blender — бесплатный редактор для 3D моделей, анимации и даже игр.</p>
-<h4>🔹 Режимы работы:</h4>
+<p>Blender — бесплатный редактор для 3D моделей, анимации и даже игр.</p>
+<h4>Режимы работы:</h4>
 <ul>
   <li><b>Object Mode</b> — перемещение объектов</li>
   <li><b>Edit Mode</b> — редактирование вершин/рёбер/граней</li>
@@ -806,7 +806,7 @@ void OnTriggerEnter(Collider other) {
   <li><b>Vertex Paint</b> — раскраска точек</li>
   <li><b>Texture Paint</b> — рисование на 3D объекте</li>
 </ul>
-<h4>🔹 Главные горячие клавиши:</h4>
+<h4>Главные горячие клавиши:</h4>
 <ul>
   <li><kbd>G</kbd> — Grab (двигать)</li>
   <li><kbd>R</kbd> — Rotate (вращать)</li>
@@ -820,8 +820,8 @@ void OnTriggerEnter(Collider other) {
     description:'Создаём первую модель.',
     video:'https://www.youtube.com/embed/B0J27sf9N1Y',
     explanation:`
-<p>🪑 Любая 3D модель начинается с простой формы. Стул можно сделать из 5 кубов!</p>
-<h4>🔹 План:</h4>
+<p>Любая 3D модель начинается с простой формы. Стул можно сделать из 5 кубов!</p>
+<h4>План:</h4>
 <ol>
   <li>Добавь куб (Shift+A → Mesh → Cube)</li>
   <li>Расплющи его — это будет сиденье</li>
@@ -830,15 +830,15 @@ void OnTriggerEnter(Collider other) {
   <li>Расположи всё правильно</li>
   <li>Покрась через Material Properties</li>
 </ol>
-<p>💡 Используй <kbd>Numpad 1/3/7</kbd> для видов спереди/сбоку/сверху.</p>
+<p>Используй <kbd>Numpad 1/3/7</kbd> для видов спереди/сбоку/сверху.</p>
 ` },
 
   { id:'blender_3', lang:'blender', title:'Анимация по ключевым кадрам',
     description:'Заставляем персонажа двигаться.',
     video:'https://www.youtube.com/embed/B0J27sf9N1Y',
     explanation:`
-<p>🎞️ <b>Ключевой кадр</b> (keyframe) — это «снимок» положения объекта в определённый момент.</p>
-<h4>🔹 Простая анимация:</h4>
+<p>️ <b>Ключевой кадр</b> (keyframe) — это «снимок» положения объекта в определённый момент.</p>
+<h4>Простая анимация:</h4>
 <ol>
   <li>Выбери объект, кадр 1 → нажми <kbd>I</kbd> → Location</li>
   <li>Перейди на кадр 30, передвинь объект → снова <kbd>I</kbd> → Location</li>
@@ -879,22 +879,22 @@ plt.title("Оценки за контрольную")
 plt.ylabel("Баллы")
 plt.show()</pre>
 <p>Для линейного графика просто замени <code>plt.bar</code> на <code>plt.plot</code>.</p>
-<p>💡 Хороший график = понятный заголовок, подписанные оси, легенда.</p>
+<p>Хороший график = понятный заголовок, подписанные оси, легенда.</p>
 ` },
 
   { id:'ds_3', lang:'datascience', title:'Олимпиадные задачи',
     description:'Логика, скорость, разбор.',
     video:'https://www.youtube.com/embed/_KvxJaUNZ2c',
     explanation:`
-<p>🏆 Олимпиадные задачи учат <b>думать</b>. Здесь важен не код, а идея решения!</p>
-<h4>🔹 Часто встречающиеся техники:</h4>
+<p>Олимпиадные задачи учат <b>думать</b>. Здесь важен не код, а идея решения!</p>
+<h4>Часто встречающиеся техники:</h4>
 <ul>
   <li><b>Жадные алгоритмы</b> — на каждом шаге берём лучшее</li>
   <li><b>Динамическое программирование</b> — сохраняем уже решённые подзадачи</li>
   <li><b>Поиск в ширину/глубину</b> — для лабиринтов и графов</li>
   <li><b>Префиксные суммы</b> — быстрый подсчёт суммы интервала</li>
 </ul>
-<p>💡 Сначала <b>проанализируй пример руками</b> на бумаге. Потом превращай в код.</p>
+<p>Сначала <b>проанализируй пример руками</b> на бумаге. Потом превращай в код.</p>
 ` },
 ];
 
@@ -951,7 +951,7 @@ const TASKS = [
     options:['Хранить число (например, очки)','Двигать персонажа','Менять фон','Рисовать линии'], answer:0,
     explain:'Переменная — это коробочка для данных. В играх часто хранят очки, жизни, время.' },
 
-  { id:10, module:'scratch_4', type:'project', title:'Проект: Поймай яблоко 🍎', difficulty:3,
+  { id:10, module:'scratch_4', type:'project', title:'Проект: Поймай яблоко ', difficulty:3,
     description:'Создай в Scratch игру: персонаж ловит яблоки, падающие сверху. Считай очки. При 10 очках — победа! Загрузи скриншот или ссылку на проект.',
     explain:'Это твой первый полноценный проект! Используй переменную "очки", цикл "всегда", условие касания.' },
 
@@ -1124,7 +1124,7 @@ const TASKS = [
     starter:'text = "карандаш и бумага"\n# подсказка: метод .count()\n',
     explain:'text.count("а") — встроенный метод строки.' },
 
-  { id:45, module:'python_4', type:'project', title:'Проект: Угадай животное 🐱', difficulty:3,
+  { id:45, module:'python_4', type:'project', title:'Проект: Угадай животное ', difficulty:3,
     description:'Текстовая игра: программа загадывает животное и даёт 5 подсказок. Пользователь угадывает. Загрузи .py файл или скриншот.',
     explain:'Используй input() для ответа, if/else для проверки, переменную для количества попыток.' },
 

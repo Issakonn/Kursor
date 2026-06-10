@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><title>Кабинет учителя — КУРСОР</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="https://salamalekum.sirv.com/_1_1.png.webp">
+<link rel="icon" href="/uploads/mascot/happy.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 <style>
@@ -96,9 +96,9 @@ function renderRow(s, p, tasks) {
       <td><code>${escapeHtml(s.login)}</code></td>
       <td>${KURSOR_DB.GROUPS[s.group]?.name || '—'}</td>
       <td>${(s.languages || []).map(l => KURSOR_DB.LANGS[l]?.emoji || '').join(' ')}</td>
-      <td data-points>⭐ ${p.points}</td>
-      <td data-streak>🔥 ${p.streak}</td>
-      <td data-done>✅ ${done}</td>
+      <td data-points><img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:14px;height:14px;vertical-align:-2px"> ${p.points}</td>
+      <td data-streak><img src="https://cdn-icons-png.flaticon.com/512/785/785116.png" style="width:14px;height:14px;vertical-align:-2px"> ${p.streak}</td>
+      <td data-done><img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" style="width:14px;height:14px;vertical-align:-2px"> ${done}</td>
       <td data-projects>${projectSubmissions.length ? `<span class="badge badge-warning">${projectSubmissions.length}</span>` : '—'}</td>
     </tr>`;
 }
@@ -120,12 +120,12 @@ function showStudent(id) {
       <p>Логин: <code>${escapeHtml(s.login)}</code> · Возраст: ${s.age} · Группа: ${KURSOR_DB.GROUPS[s.group]?.name || '—'}</p>
       <p style="margin-top:10px"><b>Языки:</b> ${(s.languages || []).map(l => KURSOR_DB.LANGS[l]?.name).join(', ') || '—'}</p>
       <div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap">
-        <div><b style="font-size:20px">⭐ ${p.points}</b><br>очков</div>
-        <div><b style="font-size:20px">🔥 ${p.streak}</b><br>streak</div>
-        <div><b style="font-size:20px">✅ ${Object.values(p.tasks).filter(t=>t.status==='done').length}</b><br>задач</div>
+        <div><b style="font-size:20px"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:14px;height:14px;vertical-align:-2px"> ${p.points}</b><br>очков</div>
+        <div><b style="font-size:20px"><img src="https://cdn-icons-png.flaticon.com/512/785/785116.png" style="width:14px;height:14px;vertical-align:-2px"> ${p.streak}</b><br>streak</div>
+        <div><b style="font-size:20px">${Object.values(p.tasks).filter(t=>t.status==='done').length}</b><br>задач</div>
       </div>
       ${submissions.length ? `
-        <h3 style="margin-top:20px">📥 Проекты на проверку</h3>
+        <h3 style="margin-top:20px">Проекты на проверку</h3>
         ${submissions.map(([tid, pr]) => {
           const t = state.tasks.find(t => t.id === parseInt(tid));
           return `
@@ -179,9 +179,9 @@ function updateRow(studentId) {
     const t = state.tasks.find(t => t.id === parseInt(id));
     return t && t.type === 'project' && pr.submission;
   });
-  tr.querySelector('[data-points]').textContent = `⭐ ${p.points}`;
-  tr.querySelector('[data-streak]').textContent = `🔥 ${p.streak}`;
-  tr.querySelector('[data-done]').textContent   = `✅ ${done}`;
+  tr.querySelector('[data-points]').textContent = `<img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:14px;height:14px;vertical-align:-2px"> ${p.points}`;
+  tr.querySelector('[data-streak]').textContent = `<img src="https://cdn-icons-png.flaticon.com/512/785/785116.png" style="width:14px;height:14px;vertical-align:-2px"> ${p.streak}`;
+  tr.querySelector('[data-done]').textContent   = `<img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" style="width:14px;height:14px;vertical-align:-2px"> ${done}`;
   tr.querySelector('[data-projects]').innerHTML = projectSubs.length
     ? `<span class="badge badge-warning">${projectSubs.length}</span>` : '—';
   tr.classList.remove('row-flash');

@@ -4,23 +4,23 @@
 <meta charset="UTF-8">
 <title>Каталог задач — КУРСОР</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="https://salamalekum.sirv.com/_1_1.png.webp">
+<link rel="icon" href="/uploads/mascot/happy.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div id="nav"></div>
 <div class="container">
-  <h1 class="section-title">📚 Каталог задач</h1>
+  <h1 class="section-title">Каталог задач</h1>
 
   <div class="filters">
-    <input class="search-input" id="search" placeholder="🔍 Поиск задач...">
+    <input class="search-input" id="search" placeholder="Поиск задач...">
     <button class="filter-chip active" data-filter="status" data-value="all">Все</button>
     <button class="filter-chip" data-filter="status" data-value="new">Не начато</button>
     <button class="filter-chip" data-filter="status" data-value="done">Решено</button>
-    <button class="filter-chip" data-filter="type" data-value="quiz">📝 Тесты</button>
-    <button class="filter-chip" data-filter="type" data-value="code">💻 Код</button>
-    <button class="filter-chip" data-filter="type" data-value="project">🏆 Проекты</button>
+    <button class="filter-chip" data-filter="type" data-value="quiz" style="display:inline-flex;align-items:center;gap:5px"><img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:14px;height:14px"> Тесты</button>
+    <button class="filter-chip" data-filter="type" data-value="code" style="display:inline-flex;align-items:center;gap:5px"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:14px;height:14px"> Код</button>
+    <button class="filter-chip" data-filter="type" data-value="project" style="display:inline-flex;align-items:center;gap:5px"><img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:14px;height:14px"> Проекты</button>
   </div>
 
   <div id="langFilters" class="filters" style="margin-top:-12px"></div>
@@ -42,7 +42,7 @@ async function init() {
   const langs = Object.entries(KURSOR_DB.LANGS);
   document.getElementById('langFilters').innerHTML = `
     <button class="filter-chip active lang-chip" data-lang="all">Все</button>
-    ${langs.map(([k,l]) => `<button class="filter-chip lang-chip" data-lang="${k}" style="display:inline-flex;align-items:center;gap:6px">${l.icon?`<img class="ic ic-16" src="${l.icon}" alt="">`:l.emoji} ${l.name}</button>`).join('')}
+    ${langs.map(([k,l]) => `<button class="filter-chip lang-chip" data-lang="${k}" style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="${l.icon}" alt=""> ${l.name}</button>`).join('')}
   `;
   document.querySelectorAll('.lang-chip').forEach(b => {
     b.onclick = () => {
@@ -76,6 +76,15 @@ async function init() {
       `<div class="card" style="padding:30px;text-align:center;color:#ef4444">Ошибка: ${escapeHtml(err.message)}</div>`;
   }
 }
+
+const typeIcons = {
+  quiz:    '<img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:14px;height:14px;vertical-align:-2px">',
+  fill:    '<img src="https://cdn-icons-png.flaticon.com/512/1250/1250615.png" style="width:14px;height:14px;vertical-align:-2px">',
+  order:   '<img src="https://cdn-icons-png.flaticon.com/512/10209/10209063.png" style="width:14px;height:14px;vertical-align:-2px">',
+  code:    '<img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:14px;height:14px;vertical-align:-2px">',
+  project: '<img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:14px;height:14px;vertical-align:-2px">',
+};
+const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект' };
 
 function render() {
   const { tasks, modules, progress } = state;
@@ -117,9 +126,9 @@ function render() {
     return `
       <div style="margin-bottom:32px">
         <h2 style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          ${lang ? `<span class="lang-badge ${lang.class}">${lang.emoji} ${lang.name}</span>` : ''}
+          ${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
           <span>${m ? escapeHtml(m.title) : modId}</span>
-          ${m && state.lessonsMap && state.lessonsMap[m.id] ? `<a href="/pages/lesson.html?id=${m.id}" class="btn btn-ghost" style="padding:4px 10px;font-size:13px">📖 Открыть урок</a>` : ''}
+          ${m && state.lessonsMap && state.lessonsMap[m.id] ? `<a href="/pages/lesson.html?id=${m.id}" class="btn btn-ghost" style="padding:4px 10px;font-size:13px">Открыть урок</a>` : ''}
         </h2>
         ${m?.description ? `<p style="color:#64748b;margin-bottom:14px">${escapeHtml(m.description)}</p>` : ''}
         <div class="tasks-grid">
@@ -131,12 +140,10 @@ function render() {
 
 function renderTaskCard(task, progress, m, lang) {
   const status = progress?.tasks[task.id]?.status || 'new';
-  const typeIcons = { quiz:'📝', fill:'✏️', order:'🔀', code:'💻', project:'🏆' };
-  const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект' };
   return `
     <div class="task-card" onclick="location.href='/pages/task.html?id=${task.id}'">
       ${status === 'done' ? '<div class="task-status status-done">✓</div>' : ''}
-      ${lang ? `<span class="lang-badge ${lang.class}">${lang.emoji} ${lang.name}</span>` : ''}
+      ${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
       <h3>${escapeHtml(task.title)}</h3>
       <div style="font-size:13px;color:#64748b;margin-top:4px">${escapeHtml((task.description||'').slice(0,90))}${(task.description||'').length>90?'…':''}</div>
       <div class="task-meta">

@@ -27,7 +27,6 @@ function renderNavbar(activePage) {
   <nav class="navbar">
     <a class="navbar-logo" href="/index.html">
       <img src="${KURSOR_DB.LOGO}" alt="КУРСОР">
-      <span>КУРСОР</span>
     </a>
     <div class="navbar-menu">
       ${links.map(l => `<a href="${l.href}" class="${l.key === activePage ? 'active' : ''}" style="display:inline-flex;align-items:center;gap:8px"><img class="ic ic-20" src="${l.icon}" alt=""> ${l.label}</a>`).join('')}

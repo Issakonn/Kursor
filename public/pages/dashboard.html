@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Главная — КУРСОР</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="https://salamalekum.sirv.com/_1_1.png.webp">
+<link rel="icon" href="/uploads/mascot/happy.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -73,10 +73,10 @@ function render(tasks, modules, progress) {
     </div>
 
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon orange">⭐</div><div><div class="stat-value">${progress.points}</div><div class="stat-label">Баллов</div></div></div>
-      <div class="stat-card"><div class="stat-icon pink">🔥</div><div><div class="stat-value">${progress.streak}</div><div class="stat-label">Дней подряд</div></div></div>
-      <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value">${doneCount}</div><div class="stat-label">Задач решено</div></div></div>
-      <div class="stat-card"><div class="stat-icon purple">🏅</div><div><div class="stat-value">${progress.badges.length}</div><div class="stat-label">Значков</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" style="width:22px;height:22px"></div><div><div class="stat-value">${progress.points}</div><div class="stat-label">Баллов</div></div></div>
+      <div class="stat-card"><div class="stat-icon pink"><img src="https://cdn-icons-png.flaticon.com/512/785/785116.png" style="width:22px;height:22px"></div><div><div class="stat-value">${progress.streak}</div><div class="stat-label">Дней подряд</div></div></div>
+      <div class="stat-card"><div class="stat-icon green"><img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" style="width:22px;height:22px"></div><div><div class="stat-value">${doneCount}</div><div class="stat-label">Задач решено</div></div></div>
+      <div class="stat-card"><div class="stat-icon purple"><img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:22px;height:22px"></div><div><div class="stat-value">${progress.badges.length}</div><div class="stat-label">Значков</div></div></div>
     </div>
 
     <h2 class="section-title">Рекомендую сегодня решить</h2>
@@ -100,7 +100,7 @@ function render(tasks, modules, progress) {
         return `
           <div class="card">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-              <span style="font-size:28px">${lang.emoji}</span>
+              <img src="${lang.icon}" style="width:28px;height:28px;object-fit:contain">
               <b>${lang.name}</b>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -119,12 +119,18 @@ function renderTaskCard(task, progress, modules) {
   const m = modules.find(m => m.id === task.module);
   const lang = m ? KURSOR_DB.LANGS[m.lang] : null;
   const status = progress.tasks[task.id]?.status || 'new';
-  const typeIcons = { quiz:'📝', fill:'✏️', order:'🔀', code:'💻', project:'🏆' };
+  const typeIcons = {
+    quiz:    '<img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:14px;height:14px;vertical-align:-2px">',
+    fill:    '<img src="https://cdn-icons-png.flaticon.com/512/1250/1250615.png" style="width:14px;height:14px;vertical-align:-2px">',
+    order:   '<img src="https://cdn-icons-png.flaticon.com/512/10209/10209063.png" style="width:14px;height:14px;vertical-align:-2px">',
+    code:    '<img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:14px;height:14px;vertical-align:-2px">',
+    project: '<img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:14px;height:14px;vertical-align:-2px">',
+  };
   const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект' };
   return `
     <div class="task-card" onclick="location.href='/pages/task.html?id=${task.id}'">
       ${status === 'done' ? '<div class="task-status status-done">✓</div>' : status === 'progress' ? '<div class="task-status status-progress">●</div>' : ''}
-      ${lang ? `<span class="lang-badge ${lang.class}">${lang.emoji} ${lang.name}</span>` : ''}
+      ${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
       <h3>${escapeHtml(task.title)}</h3>
       <div style="font-size:13px;color:#64748b;margin-top:4px">${m ? escapeHtml(m.title) : ''}</div>
       <div class="task-meta">

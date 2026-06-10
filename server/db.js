@@ -8,7 +8,7 @@ const Database = require('better-sqlite3');
 const DB_DIR = path.join(__dirname, 'db');
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
-const DB_PATH = path.join(DB_DIR, 'kursor.sqlite');
+const DB_PATH = process.env.DB_PATH || path.join(DB_DIR, 'kursor.sqlite');
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');

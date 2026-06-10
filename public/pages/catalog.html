@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Каталог задач — КУРСОР</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="https://salamalekum.sirv.com/_1_1.png.webp"><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet"><link rel="stylesheet" href="/css/style.css"></head>
+<body>
+<div id="nav"></div>
+<div class="container">
+ <h1 class="section-title" style="display:flex;align-items:center;gap:10px"><img class="ic ic-28" src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt=""> Каталог задач</h1>
+
+ <div class="filters">
+ <input class="search-input" id="search" placeholder="Поиск задач...">
+ <button class="filter-chip active" data-filter="status" data-value="all">Все</button>
+ <button class="filter-chip" data-filter="status" data-value="new">Не начато</button>
+ <button class="filter-chip" data-filter="status" data-value="done">Решено</button>
+ <button class="filter-chip" data-filter="type" data-value="quiz"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/3209/3209265.png" alt=""> Тесты</span></button>
+ <button class="filter-chip" data-filter="type" data-value="code"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/1005/1005141.png" alt=""> Код</span></button>
+ <button class="filter-chip" data-filter="type" data-value="project"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" alt=""> Проекты</span></button>
+ </div>
+
+ <div id="langFilters" class="filters" style="margin-top:-12px"></div>
+ <div id="tasksContainer">Загружаем…</div>
+</div>
+
+<script src="/data/database.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+<script>
+const user = requireAuth(['student','teacher','admin']);
+let filters = { type:null, status:null, lang:'all', search:'' };
+let state = { tasks: [], modules: [], progress: null };
+
+if (user) init();
+
+async function init() {
+ document.getElementById('nav').innerHTML = renderNavbar('catalog');
+ const langs = Object.entries(KURSOR_DB.LANGS);
+ document.getElementById('langFilters').innerHTML = `
+ <button class="filter-chip active lang-chip" data-lang="all">Все</button>
+ ${langs.map(([k,l]) => `<button class="filter-chip lang-chip" data-lang="${k}" style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="${l.icon||''}" alt=""> ${l.name}</button>`).join('')}
+ `;
+ document.querySelectorAll('.lang-chip').forEach(b => {
+ b.onclick = () => {
+ document.querySelectorAll('.lang-chip').forEach(x => x.classList.remove('active'));
+ b.classList.add('active');
+ filters.lang = b.dataset.lang;
+ render();
+ };
+ });
+ document.querySelectorAll('.filters.filter-chip[data-filter]').forEach(b => {
+ b.onclick = () => {
+ const f = b.dataset.filter, v = b.dataset.value;
+ document.querySelectorAll(`.filter-chip[data-filter="${f}"]`).forEach(x => x.classList.remove('active'));
+ b.classList.add('active');
+ filters[f] = v === 'all'? null: v;
+ render();
+ };
+ });
+ document.getElementById('search').oninput = e => { filters.search = e.target.value.toLowerCase(); render(); };
+
+ try {
+ const [tasks, modules, lessons] = await Promise.all([API.getTasks(), API.getModules(), API.listLessons().catch(() => [])]);
+ let progress = null;
+ if (user.role === 'student') progress = await API.getMyProgress();
+ const lessonsMap = {};
+ (lessons || []).forEach(l => { if (l.has_lesson) lessonsMap[l.id] = true; });
+ state = { tasks, modules, progress, lessonsMap };
+ render();
+ } catch (err) {
+ document.getElementById('tasksContainer').innerHTML =
+ `<div class="card" style="padding:30px;text-align:center;color:#ef4444">Ошибка: ${escapeHtml(err.message)}</div>`;
+ }
+}
+
+function render() {
+ const { tasks, modules, progress } = state;
+ let filtered = tasks.filter(t => {
+ const m = modules.find(m => m.id === t.module);
+ if (!m) return false;
+ if (user.role === 'student') {
+ const lang = KURSOR_DB.LANGS[m.lang];
+ if (!lang) return false;
+ if (lang.group!== user.group &&!(user.languages || []).includes(m.lang)) return false;
+ }
+ if (filters.lang!== 'all' && m.lang!== filters.lang) return false;
+ if (filters.type && t.type!== filters.type) return false;
+ if (filters.status === 'done' && (!progress || progress.tasks[t.id]?.status!== 'done')) return false;
+ if (filters.status === 'new' && (progress && progress.tasks[t.id]?.status === 'done')) return false;
+ if (filters.search) {
+ const txt = (t.title + ' ' + (t.description||'') + ' ' + m.title).toLowerCase();
+ if (!txt.includes(filters.search)) return false;
+ }
+ return true;
+ });
+
+ const byModule = {};
+ filtered.forEach(t => { (byModule[t.module] = byModule[t.module] || []).push(t); });
+
+ if (!Object.keys(byModule).length) {
+ document.getElementById('tasksContainer').innerHTML = `
+ <div class="card" style="text-align:center;padding:40px">
+ <img src="${KURSOR_DB.MASCOT.thinking}" style="height:120px"><br>
+ <h3 style="margin:14px 0">Ничего не найдено</h3>
+ <p style="color:#64748b">Попробуй другие фильтры</p>
+ </div>`;
+ return;
+ }
+
+ document.getElementById('tasksContainer').innerHTML = Object.entries(byModule).map(([modId, tList]) => {
+ const m = modules.find(m => m.id === modId);
+ const lang = m? KURSOR_DB.LANGS[m.lang]: null;
+ return `
+ <div style="margin-bottom:32px">
+ <h2 style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">${lang? `<span class="lang-badge ${lang.class}" style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="${lang.icon||''}" alt=""> ${lang.name}</span>`: ''}
+ <span>${m? escapeHtml(m.title): modId}</span>
+ ${m && state.lessonsMap && state.lessonsMap[m.id]? `<a href="/pages/lesson.html?id=${m.id}" class="btn btn-ghost" style="padding:4px 10px;font-size:13px"><span style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-14" src="https://cdn-icons-png.flaticon.com/512/2436/2436874.png" alt=""> Открыть урок</span></a>`: ''}
+ </h2>
+ ${m?.description? `<p style="color:#64748b;margin-bottom:14px">${escapeHtml(m.description)}</p>`: ''}
+ <div class="tasks-grid">
+ ${tList.sort((a,b)=>(a.difficulty||1)-(b.difficulty||1)).map(t => renderTaskCard(t, progress, m, lang)).join('')}
+ </div>
+ </div>`;
+ }).join('');
+}
+
+function renderTaskCard(task, progress, m, lang) {
+ const status = progress?.tasks[task.id]?.status || 'new';
+ const typeIcons = { quiz:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/3209/3209265.png" alt="">', fill:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" alt="">', order:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/8090/8090669.png" alt="">', code:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/1005/1005141.png" alt="">', project:'<img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" alt="">' };
+ const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект' };
+ return `
+ <div class="task-card" onclick="location.href='/pages/task.html?id=${task.id}'">
+ ${status === 'done'? '<div class="task-status status-done"><img class="ic ic-16" src="https://cdn-icons-png.flaticon.com/512/5610/5610944.png" alt=""></div>': ''}
+ ${lang? `<span class="lang-badge ${lang.class}" style="display:inline-flex;align-items:center;gap:6px"><img class="ic ic-16" src="${lang.icon||''}" alt=""> ${lang.name}</span>`: ''}
+ <h3>${escapeHtml(task.title)}</h3>
+ <div style="font-size:13px;color:#64748b;margin-top:4px">${escapeHtml((task.description||'').slice(0,90))}${(task.description||'').length>90?'…':''}</div>
+ <div class="task-meta">
+ <span>${typeIcons[task.type]} ${typeNames[task.type]}</span>
+ <span class="difficulty">${[1,2,3].map(d => `<span class="${d <= (task.difficulty||1)? 'active': ''}"></span>`).join('')}</span>
+ </div>
+ </div>`;
+}
+</script>
+</body>
+</html>

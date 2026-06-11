@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS modules (
 CREATE TABLE IF NOT EXISTS tasks (
   id              INTEGER PRIMARY KEY,
   module_id       TEXT NOT NULL,
-  type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project')),
+  type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project','scratch','blockly','htmlcss')),
   title           TEXT NOT NULL,
   description     TEXT,
   difficulty      INTEGER DEFAULT 1,
@@ -115,5 +115,41 @@ try {
     db.prepare("ALTER TABLE users ADD COLUMN avatar_url TEXT").run();
   }
 } catch {}
+
+// Миграция: расширяем CHECK constraint tasks.type для новых типов (scratch, blockly, htmlcss)
+// SQLite не поддерживает ALTER TABLE для изменения CHECK — пересоздаём таблицу
+try {
+  const tasksSql = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='tasks'").get();
+  const needsMigration = tasksSql && !tasksSql.sql.includes("'scratch'");
+  if (needsMigration) {
+    db.exec(`
+      PRAGMA foreign_keys = OFF;
+      BEGIN;
+      ALTER TABLE tasks RENAME TO tasks_old;
+      CREATE TABLE tasks (
+        id              INTEGER PRIMARY KEY,
+        module_id       TEXT NOT NULL,
+        type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project','scratch','blockly','htmlcss')),
+        title           TEXT NOT NULL,
+        description     TEXT,
+        difficulty      INTEGER DEFAULT 1,
+        explain         TEXT,
+        options         TEXT,
+        answer          TEXT,
+        items           TEXT,
+        expected_output TEXT,
+        starter         TEXT,
+        FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE
+      );
+      INSERT INTO tasks SELECT * FROM tasks_old;
+      DROP TABLE tasks_old;
+      COMMIT;
+      PRAGMA foreign_keys = ON;
+    `);
+    console.log('[db] Миграция tasks: CHECK constraint обновлён для новых типов.');
+  }
+} catch (e) {
+  console.error('[db] Ошибка миграции tasks:', e.message);
+}
 
 module.exports = db;

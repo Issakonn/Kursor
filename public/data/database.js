@@ -1346,6 +1346,40 @@ const TASKS = [
   { id:89, module:'ds_3', type:'project', title:'Проект: анализ погоды', difficulty:3,
     description:'Найди CSV с погодой за месяц (или сделай свой). Построй график температуры по дням и выведи средние/мин/макс значения.',
     explain:'pandas для данных + matplotlib для графика. Хорошо иметь подписи и легенду.' },
+
+  // ========== ИНТЕРАКТИВНЫЕ ЗАДАЧИ (Scratch / HTML+CSS / Blockly) ==========
+
+  // ----- SCRATCH (TurboWarp embed) -----
+  { id:101, module:'scratch_1', type:'scratch', title:'Создай анимацию кота', difficulty:1,
+    description:'Открой редактор ниже и сделай простую анимацию: когда нажат флажок → всегда → следующий костюм, ждать 0.2 сек. Кот должен бежать на месте.',
+    explain:'Блок «следующий костюм» + пауза дают эффект анимации.' },
+
+  { id:102, module:'scratch_2', type:'scratch', title:'Управляй котом стрелками', difficulty:2,
+    description:'Сделай так, чтобы кот двигался влево/вправо при нажатии стрелок (внутри блока «всегда» — два «если»).',
+    explain:'Используй «клавиша вправо нажата?» + «изменить x на 10».' },
+
+  // ----- HTML+CSS (split-editor) -----
+  { id:103, module:'html_1', type:'htmlcss', title:'Раскрась заголовок', difficulty:1,
+    description:'Сделай заголовок красным. Подсказка: добавь атрибут style или встроить <style>.',
+    starter:'<h1>Привет!</h1>',
+    expectedOutput:'color:red',
+    explain:'Пример: <h1 style="color:red">Привет!</h1>. Или <style>h1{color:red}</style>.' },
+
+  { id:104, module:'html_1', type:'htmlcss', title:'Сделай кнопку', difficulty:2,
+    description:'Создай с нуля кнопку с текстом «Нажми меня». Оформи её: фон синий, текст белый, отступы внутри.',
+    starter:'',
+    explain:'Пример: <button style="background:#3b82f6;color:#fff;padding:10px 18px;border:0;border-radius:8px">Нажми меня</button>.' },
+
+  // ----- BLOCKLY (workspace + JS-gen) -----
+  { id:105, module:'scratch_3', type:'blockly', title:'Цикл 10 раз', difficulty:1,
+    description:'Собери блоками цикл, который повторится 10 раз и на каждом шаге печатает слово «hi». Нажми «Сгенерировать JavaScript».',
+    expectedOutput:'for (var count = 0; count < 10;',
+    explain:'Категория Loops → «повторить 10 раз». Внутрь — блок Text print со строкой hi.' },
+
+  { id:106, module:'scratch_3', type:'blockly', title:'Если переменная > 5', difficulty:2,
+    description:'Создай переменную x, присвой ей число 7. Добавь блок «если x > 5» — внутрь напечатай «big». Сгенерируй JS.',
+    expectedOutput:'if (x > 5)',
+    explain:'Logic → if + compare > ; Variables → set x to 7 ; Text → print("big").' },
 ];
 
 /* ===== ЗНАЧКИ (achievements) ===== */

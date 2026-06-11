@@ -46,9 +46,15 @@ const typeIcons = {
   order:   '<img src="https://cdn-icons-png.flaticon.com/512/10209/10209063.png" style="width:16px;height:16px;vertical-align:-3px">',
   code:    '<img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:16px;height:16px;vertical-align:-3px">',
   project: '<img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:16px;height:16px;vertical-align:-3px">',
+  scratch: '<img src="https://cdn-icons-png.flaticon.com/512/220/220112.png" style="width:16px;height:16px;vertical-align:-3px">',
+  htmlcss: '<img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" style="width:16px;height:16px;vertical-align:-3px">',
+  blockly: '<img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" style="width:16px;height:16px;vertical-align:-3px">',
 };
-const typeNames = { quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект' };
-const points = { quiz:10, fill:15, order:20, code:25, project:50 };
+const typeNames = {
+  quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект',
+  scratch:'Scratch-проект', htmlcss:'HTML / CSS живое превью', blockly:'Blockly-блоки'
+};
+const points = { quiz:10, fill:15, order:20, code:25, project:50, scratch:40, htmlcss:30, blockly:35 };
 
 function render() {
   const { task, mod, lang } = state;
@@ -142,6 +148,82 @@ function renderSolver(task) {
         <p style="margin-bottom:10px;color:#64748b">Загрузи ссылку на проект, опиши что сделал или вставь скриншот:</p>
         <textarea class="form-input" id="projectInput" rows="6" placeholder="Ссылка на Scratch, GitHub, описание…" style="font-family:inherit;resize:vertical"></textarea>
         <p style="font-size:13px;color:#64748b;margin-top:10px">Учитель проверит твой проект и поставит оценку.</p>`;
+
+    case 'scratch': {
+      const tw = task.scratchProjectId
+        ? `https://turbowarp.org/${encodeURIComponent(task.scratchProjectId)}/editor`
+        : 'https://turbowarp.org/editor';
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Открой Scratch-редактор ниже (TurboWarp), собери проект по заданию, затем опиши что ты сделал:</p>
+        <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#f8fafc">
+          <iframe id="scratchFrame" src="${tw}" style="width:100%;height:520px;border:0;display:block" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals" allowfullscreen></iframe>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn btn-outline" href="${tw}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px">
+            <img src="https://cdn-icons-png.flaticon.com/512/1828/1828817.png" style="width:16px;height:16px"> Открыть в новой вкладке
+          </a>
+          <button class="btn btn-ghost" type="button" onclick="document.getElementById('scratchFrame').src=document.getElementById('scratchFrame').src">↻ Перезапустить</button>
+        </div>
+        <p style="margin:14px 0 6px;color:#64748b">Опиши что ты сделал (ссылка на сохранённый проект, описание блоков и т.п.):</p>
+        <textarea class="form-input" id="scratchInput" rows="5" placeholder="Например: я добавил блок 'когда нажат флажок', цикл повторить 10 раз…" style="font-family:inherit;resize:vertical"></textarea>
+        <p style="font-size:13px;color:#64748b;margin-top:8px">Учитель проверит твой Scratch-проект и поставит оценку.</p>`;
+    }
+
+    case 'htmlcss': {
+      const starter = task.starter || '';
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Меняй код слева — превью справа обновляется автоматически:</p>
+        <div class="htmlcss-split" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch">
+          <textarea class="code-input" id="htmlInput" spellcheck="false" style="min-height:340px">${escapeHtml(starter)}</textarea>
+          <iframe id="htmlPreview" sandbox="allow-scripts" style="width:100%;min-height:340px;border:1px solid #e2e8f0;border-radius:10px;background:#fff"></iframe>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline" type="button" id="htmlRefreshBtn" style="display:inline-flex;align-items:center;gap:6px">
+            <img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" style="width:16px;height:16px"> Обновить превью
+          </button>
+          <span style="color:#64748b;font-size:13px">Превью изолировано (sandbox).</span>
+        </div>
+        ${task.expectedOutput ? '' : '<p style="font-size:13px;color:#64748b;margin-top:10px">У этой задачи нет автопроверки — учитель оценит твою работу.</p>'}`;
+    }
+
+    case 'blockly': {
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Собери программу из блоков. Когда готов — нажми «Сгенерировать JavaScript».</p>
+        <div id="blocklyDiv" style="height:420px;width:100%;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc"></div>
+        <xml id="blocklyToolbox" style="display:none">
+          <category name="Logic" colour="#5C81A6">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_negate"></block>
+            <block type="logic_boolean"></block>
+          </category>
+          <category name="Loops" colour="#5CA65C">
+            <block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+            <block type="controls_whileUntil"></block>
+            <block type="controls_for"><value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="TO"><shadow type="math_number"><field name="NUM">10</field></shadow></value><value name="BY"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+          </category>
+          <category name="Math" colour="#5C68A6">
+            <block type="math_number"></block>
+            <block type="math_arithmetic"></block>
+            <block type="math_single"></block>
+            <block type="math_modulo"></block>
+          </category>
+          <category name="Text" colour="#5CA68D">
+            <block type="text"></block>
+            <block type="text_print"></block>
+            <block type="text_join"></block>
+          </category>
+          <category name="Variables" colour="#A65C81" custom="VARIABLE"></category>
+        </xml>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-outline" type="button" id="genJsBtn" style="display:inline-flex;align-items:center;gap:6px">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968292.png" style="width:16px;height:16px"> Сгенерировать JavaScript
+          </button>
+          <span id="blocklyStatus" style="color:#64748b;font-size:13px"></span>
+        </div>
+        <pre id="blocklyOutput" style="background:#1e293b;color:#a7f3d0;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap;margin-top:10px;min-height:60px">// здесь появится сгенерированный код</pre>`;
+    }
   }
 }
 
@@ -160,6 +242,54 @@ function attachInteractions(task) {
     state.dragOrder = shuffled.slice();
     renderDrag();
   }
+  if (task.type === 'htmlcss') {
+    const ta = document.getElementById('htmlInput');
+    const pv = document.getElementById('htmlPreview');
+    const refresh = () => { try { pv.srcdoc = ta.value; } catch(e){} };
+    ta.addEventListener('input', refresh);
+    const btn = document.getElementById('htmlRefreshBtn');
+    if (btn) btn.onclick = refresh;
+    refresh();
+  }
+  if (task.type === 'blockly') {
+    initBlockly(task);
+  }
+}
+
+let blocklyWorkspace = null;
+async function initBlockly(task) {
+  const status = document.getElementById('blocklyStatus');
+  if (status) status.textContent = 'Загружаю Blockly…';
+  if (!window.Blockly) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/blockly/blockly.min.js';
+      s.onload = resolve; s.onerror = () => reject(new Error('Не удалось загрузить Blockly'));
+      document.body.appendChild(s);
+    }).catch(err => { if (status) status.textContent = err.message; });
+  }
+  if (!window.Blockly) return;
+  const toolboxXml = document.getElementById('blocklyToolbox');
+  try {
+    blocklyWorkspace = Blockly.inject('blocklyDiv', { toolbox: toolboxXml, trashcan: true,
+      grid:{spacing:20,length:3,colour:'#e2e8f0',snap:true},
+      zoom:{controls:true,wheel:true,startScale:0.9,maxScale:2,minScale:0.5,scaleSpeed:1.1}
+    });
+    if (status) status.textContent = 'Готово — собирай!';
+  } catch (e) {
+    if (status) status.textContent = 'Ошибка инициализации: ' + e.message;
+    return;
+  }
+  const btn = document.getElementById('genJsBtn');
+  if (btn) btn.onclick = () => {
+    try {
+      const code = Blockly.JavaScript ? Blockly.JavaScript.workspaceToCode(blocklyWorkspace) : '';
+      document.getElementById('blocklyOutput').textContent = code || '// (пусто — добавь блоки)';
+      state.blocklyCode = code || '';
+    } catch (e) {
+      document.getElementById('blocklyOutput').textContent = '// Ошибка: ' + e.message;
+    }
+  };
 }
 
 function renderDrag() {
@@ -238,6 +368,61 @@ async function checkAnswer() {
       showFeedback(true, 'Проект отправлен учителю на проверку!');
       fireConfetti();
       return;
+    case 'scratch': {
+      const sv = document.getElementById('scratchInput').value.trim();
+      if (sv.length < 10) { showFeedback(false, 'Опиши свой Scratch-проект (мин. 10 символов).'); return; }
+      await recordCompleteSafe(task.id, points.scratch, state.hintUsed, sv);
+      showFeedback(true, 'Scratch-проект отправлен учителю на проверку! +' + points.scratch + ' очков (после подтверждения)');
+      fireConfetti();
+      return;
+    }
+    case 'htmlcss': {
+      const hv = document.getElementById('htmlInput').value;
+      const expected = (task.expectedOutput || '').trim();
+      if (expected) {
+        const norm = s => s.replace(/\s+/g, ' ').toLowerCase();
+        correct = norm(hv).includes(norm(expected));
+        userAnswer = hv;
+        await recordAttemptSafe(task.id);
+        if (correct) {
+          let pts = points.htmlcss; if (!state.hintUsed) pts += 5;
+          await recordCompleteSafe(task.id, pts, state.hintUsed, hv);
+          showFeedback(true, `Отлично! Код содержит нужный фрагмент. +${pts} очков`);
+          fireConfetti();
+        } else {
+          showFeedback(false, task.explain ? `Пока не то. ${task.explain}` : 'Код пока не содержит нужного фрагмента.');
+        }
+      } else {
+        if (hv.trim().length < 5) { showFeedback(false, 'Напиши хоть немного кода.'); return; }
+        await recordCompleteSafe(task.id, points.htmlcss, state.hintUsed, hv);
+        showFeedback(true, 'Работа отправлена учителю на проверку!');
+        fireConfetti();
+      }
+      return;
+    }
+    case 'blockly': {
+      const bc = (state.blocklyCode || '').trim();
+      if (!bc) { showFeedback(false, 'Сначала нажми «Сгенерировать JavaScript».'); return; }
+      const expected = (task.expectedOutput || '').trim();
+      if (expected) {
+        const norm = s => s.replace(/\s+/g, ' ').toLowerCase();
+        correct = norm(bc).includes(norm(expected));
+        await recordAttemptSafe(task.id);
+        if (correct) {
+          let pts = points.blockly; if (!state.hintUsed) pts += 5;
+          await recordCompleteSafe(task.id, pts, state.hintUsed, bc);
+          showFeedback(true, `Отлично! Блоки собраны верно. +${pts} очков`);
+          fireConfetti();
+        } else {
+          showFeedback(false, task.explain ? `Пока не то. ${task.explain}` : 'Сгенерированный код не содержит ожидаемой конструкции.');
+        }
+      } else {
+        await recordCompleteSafe(task.id, points.blockly, state.hintUsed, bc);
+        showFeedback(true, 'Решение отправлено учителю на проверку!');
+        fireConfetti();
+      }
+      return;
+    }
   }
 
   await recordAttemptSafe(task.id);

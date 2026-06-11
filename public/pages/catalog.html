@@ -26,6 +26,9 @@
       <button class="filter-chip" data-value="quiz"><img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" class="chip-ic"> Тесты</button>
       <button class="filter-chip" data-value="code"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" class="chip-ic"> Код</button>
       <button class="filter-chip" data-value="project"><img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" class="chip-ic"> Проекты</button>
+      <button class="filter-chip" data-value="scratch"><img src="https://cdn-icons-png.flaticon.com/512/220/220112.png" class="chip-ic"> Scratch</button>
+      <button class="filter-chip" data-value="htmlcss"><img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" class="chip-ic"> HTML/CSS</button>
+      <button class="filter-chip" data-value="blockly"><img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" class="chip-ic"> Blockly</button>
     </div>
   </div>
 
@@ -101,8 +104,11 @@ const typeIcons = {
   order:   '<img src="https://cdn-icons-png.flaticon.com/512/10209/10209063.png" style="width:14px;height:14px;vertical-align:-2px">',
   code:    '<img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:14px;height:14px;vertical-align:-2px">',
   project: '<img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" style="width:14px;height:14px;vertical-align:-2px">',
+  scratch: '<img src="https://cdn-icons-png.flaticon.com/512/220/220112.png" style="width:14px;height:14px;vertical-align:-2px">',
+  htmlcss: '<img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" style="width:14px;height:14px;vertical-align:-2px">',
+  blockly: '<img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" style="width:14px;height:14px;vertical-align:-2px">',
 };
-const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект' };
+const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект', scratch:'Scratch', htmlcss:'HTML/CSS', blockly:'Blockly' };
 
 function render() {
   const { tasks, modules, progress } = state;

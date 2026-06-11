@@ -318,7 +318,7 @@ function renderTasks() {
         ${cache.tasks.map(t => {
           const m = cache.modules.find(m => m.id === t.module);
           const lang = m ? KURSOR_DB.LANGS[m.lang] : null;
-          const typeEmoji = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект' };
+          const typeEmoji = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект', scratch:'Scratch', htmlcss:'HTML/CSS', blockly:'Blockly' };
           return `
             <tr data-search="${escapeHtml((t.title + ' ' + (m?.title||'') + ' ' + (lang?.name||'')).toLowerCase())}">
               <td>${t.id}</td>
@@ -361,8 +361,11 @@ function openTaskForm(id) {
         <option value="quiz" ${t.type==='quiz'?'selected':''}><img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" style="width:22px;height:22px"> Тест (выбор из 4)</option>
         <option value="fill" ${t.type==='fill'?'selected':''}>️ Заполни пропуск</option>
         <option value="order" ${t.type==='order'?'selected':''}>Расставь по порядку</option>
-        <option value="code" ${t.type==='code'?'selected':''}>Напиши код</option>
+        <option value="code" ${t.type==='code'?'selected':''}>Напиши код (Python)</option>
         <option value="project" ${t.type==='project'?'selected':''}>Мини-проект</option>
+        <option value="scratch" ${t.type==='scratch'?'selected':''}>🐱 Scratch / TurboWarp</option>
+        <option value="htmlcss" ${t.type==='htmlcss'?'selected':''}>🌐 HTML / CSS редактор</option>
+        <option value="blockly" ${t.type==='blockly'?'selected':''}>🧩 Blockly блоки</option>
       </select>
     </div>
     <div class="form-group"><label>Сложность (1-3)</label><input class="form-input" id="t_diff" type="number" min="1" max="3" value="${t.difficulty||1}"></div>
@@ -407,6 +410,32 @@ function updateTaskTypeFields() {
       <textarea class="form-input" id="t_starter" rows="4" style="font-family:Fira Code,monospace">${escapeHtml(t.starter||'')}</textarea>`;
   } else if (type === 'project') {
     html = `<p style="color:#64748b;font-size:14px">Для проектов ученик загружает текст/ссылку, учитель проверяет вручную.</p>`;
+  } else if (type === 'scratch') {
+    html = `
+      <label>ID проекта Scratch (необязательно)</label>
+      <input class="form-input" id="t_scratch_id" value="${escapeHtml(t.scratchProjectId||'')}" placeholder="Например: 123456789 — оставь пустым для пустого редактора">
+      <p style="color:#64748b;font-size:13px;margin-top:6px">Ученик открывает TurboWarp прямо в задаче, делает проект и описывает что сделал. Учитель проверяет вручную.</p>`;
+  } else if (type === 'htmlcss') {
+    html = `
+      <label>Стартовый HTML/CSS код</label>
+      <textarea class="form-input" id="t_starter" rows="6" style="font-family:Fira Code,monospace;font-size:13px">${escapeHtml(t.starter||'<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* твои стили */
+  </style>
+</head>
+<body>
+  <h1>Привет!</h1>
+</body>
+</html>')}</textarea>
+      <label style="margin-top:10px">Ожидаемый результат (описание для ученика, необязательно)</label>
+      <textarea class="form-input" id="t_expected" rows="2">${escapeHtml(t.expectedOutput||'')}</textarea>`;
+  } else if (type === 'blockly') {
+    html = `
+      <label>Ожидаемый JavaScript-код (необязательно — для автопроверки)</label>
+      <textarea class="form-input" id="t_expected" rows="3" style="font-family:Fira Code,monospace;font-size:13px">${escapeHtml(t.expectedOutput||'')}</textarea>
+      <p style="color:#64748b;font-size:13px;margin-top:6px">Ученик составляет программу из блоков Blockly. Можно проверять автоматически или вручную.</p>`;
   }
   document.getElementById('typeFields').innerHTML = html;
 }
@@ -437,6 +466,13 @@ async function saveTask(id) {
   } else if (type === 'code') {
     data.expectedOutput = document.getElementById('t_expected').value;
     data.starter = document.getElementById('t_starter').value;
+  } else if (type === 'scratch') {
+    data.scratchProjectId = document.getElementById('t_scratch_id').value.trim();
+  } else if (type === 'htmlcss') {
+    data.starter = document.getElementById('t_starter').value;
+    data.expectedOutput = document.getElementById('t_expected').value;
+  } else if (type === 'blockly') {
+    data.expectedOutput = document.getElementById('t_expected').value;
   }
 
   try {

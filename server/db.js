@@ -152,4 +152,13 @@ try {
   console.error('[db] Ошибка миграции tasks:', e.message);
 }
 
+// Миграция: добавляем scratch_project_id в старые базы
+try {
+  const cols = db.prepare("PRAGMA table_info(tasks)").all();
+  if (!cols.some(c => c.name === 'scratch_project_id')) {
+    db.prepare("ALTER TABLE tasks ADD COLUMN scratch_project_id TEXT").run();
+    console.log('[db] Миграция tasks: добавлена колонка scratch_project_id');
+  }
+} catch {}
+
 module.exports = db;

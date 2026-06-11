@@ -28,6 +28,7 @@ function taskRow(r) {
   if (r.items) t.items = JSON.parse(r.items);
   if (r.expected_output) t.expectedOutput = r.expected_output;
   if (r.starter) t.starter = r.starter;
+  if (r.scratch_project_id) t.scratchProjectId = r.scratch_project_id;
   return t;
 }
 
@@ -94,6 +95,9 @@ router.post('/tasks', requireRole('admin', 'teacher'), (req, res) => {
     t.expectedOutput || null,
     t.starter || null
   );
+  if (t.scratchProjectId !== undefined) {
+    db.prepare('UPDATE tasks SET scratch_project_id=? WHERE id=?').run(t.scratchProjectId || null, id);
+  }
   res.status(201).json(taskRow(db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)));
 });
 
@@ -120,6 +124,9 @@ router.put('/tasks/:id', requireRole('admin', 'teacher'), (req, res) => {
     t.starter !== undefined ? t.starter : cur.starter,
     id
   );
+  if (t.scratchProjectId !== undefined) {
+    db.prepare('UPDATE tasks SET scratch_project_id=? WHERE id=?').run(t.scratchProjectId || null, id);
+  }
   res.json(taskRow(db.prepare('SELECT * FROM tasks WHERE id = ?').get(id)));
 });
 

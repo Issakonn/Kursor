@@ -1380,6 +1380,34 @@ const TASKS = [
     description:'Создай переменную x, присвой ей число 7. Добавь блок «если x > 5» — внутрь напечатай «big». Сгенерируй JS.',
     expectedOutput:'if (x > 5)',
     explain:'Logic → if + compare > ; Variables → set x to 7 ; Text → print("big").' },
+
+  // ========== JAVA — интерактивные задачи с авто-проверкой через Piston ==========
+  { id:201, module:'java_1', type:'java', title:'Приветствие на Java', difficulty:1,
+    description:'Напиши программу, которая выведёт ровно строку Hello, Java!',
+    expectedOutput:'Hello, Java!',
+    starter:'public class Main {\n    public static void main(String[] args) {\n        // выведи здесь строку\n        \n    }\n}\n',
+    explain:'Используй System.out.println("Hello, Java!").' },
+
+  { id:202, module:'java_1', type:'java', title:'Сумма двух чисел', difficulty:2,
+    description:'Считай из ввода два целых числа (в разных строках) и выведи их сумму.',
+    stdin:'7\n13\n',
+    expectedOutput:'20',
+    starter:'import java.util.Scanner;\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        // выведи сумму\n        \n    }\n}\n',
+    explain:'System.out.println(a + b);' },
+
+  // ========== C++ — интерактивные задачи ==========
+  { id:203, module:'cpp_1', type:'cpp', title:'Первая программа на C++', difficulty:1,
+    description:'Напиши программу, которая выведёт Hello, C++!',
+    expectedOutput:'Hello, C++!',
+    starter:'#include <iostream>\nusing namespace std;\nint main() {\n    // выведи строку\n    \n    return 0;\n}\n',
+    explain:'cout << "Hello, C++!" << endl;' },
+
+  { id:204, module:'cpp_2', type:'cpp', title:'Квадрат числа', difficulty:2,
+    description:'Считай целое число со ввода и выведи его квадрат.',
+    stdin:'9\n',
+    expectedOutput:'81',
+    starter:'#include <iostream>\nusing namespace std;\nint main() {\n    int n;\n    cin >> n;\n    // выведи n*n\n    \n    return 0;\n}\n',
+    explain:'cout << n*n << endl;' },
 ];
 
 /* ===== ЗНАЧКИ (achievements) ===== */

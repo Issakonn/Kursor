@@ -24,11 +24,11 @@
     <div class="filter-group" data-filter="type">
       <button class="filter-chip active" data-value="all">Все типы</button>
       <button class="filter-chip" data-value="quiz"><img src="https://cdn-icons-png.flaticon.com/512/3143/3143190.png" class="chip-ic"> Тесты</button>
-      <button class="filter-chip" data-value="code"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" class="chip-ic"> Код</button>
+      <button class="filter-chip" data-value="code"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" class="chip-ic"> Код (Python)</button>
+      <button class="filter-chip" data-value="java"><img src="/uploads/icons/java.svg" class="chip-ic"> Java</button>
+      <button class="filter-chip" data-value="cpp"><img src="/uploads/icons/cpp.svg" class="chip-ic"> C++</button>
       <button class="filter-chip" data-value="project"><img src="https://cdn-icons-png.flaticon.com/512/2583/2583344.png" class="chip-ic"> Проекты</button>
-      <button class="filter-chip" data-value="scratch"><img src="https://cdn-icons-png.flaticon.com/512/220/220112.png" class="chip-ic"> Scratch</button>
-      <button class="filter-chip" data-value="htmlcss"><img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" class="chip-ic"> HTML/CSS</button>
-      <button class="filter-chip" data-value="blockly"><img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" class="chip-ic"> Blockly</button>
+      <button class="filter-chip" data-value="interactive"><img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" class="chip-ic"> Интерактивные</button>
     </div>
   </div>
 
@@ -107,8 +107,10 @@ const typeIcons = {
   scratch: '<img src="https://cdn-icons-png.flaticon.com/512/220/220112.png" style="width:14px;height:14px;vertical-align:-2px">',
   htmlcss: '<img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" style="width:14px;height:14px;vertical-align:-2px">',
   blockly: '<img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" style="width:14px;height:14px;vertical-align:-2px">',
+  java:    '<img src="/uploads/icons/java.svg" style="width:14px;height:14px;vertical-align:-2px">',
+  cpp:     '<img src="/uploads/icons/cpp.svg" style="width:14px;height:14px;vertical-align:-2px">',
 };
-const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код', project:'Проект', scratch:'Scratch', htmlcss:'HTML/CSS', blockly:'Blockly' };
+const typeNames = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код Python', project:'Проект', scratch:'Интерактив', htmlcss:'Интерактив', blockly:'Интерактив', java:'Код Java', cpp:'Код C++' };
 
 function render() {
   const { tasks, modules, progress } = state;
@@ -121,7 +123,11 @@ function render() {
       if (lang.group !== user.group && !(user.languages || []).includes(m.lang)) return false;
     }
     if (filters.lang !== 'all' && m.lang !== filters.lang) return false;
-    if (filters.type && t.type !== filters.type) return false;
+    if (filters.type) {
+      if (filters.type === 'interactive') {
+        if (!['scratch','htmlcss','blockly'].includes(t.type)) return false;
+      } else if (t.type !== filters.type) return false;
+    }
     if (filters.status === 'done' && (!progress || progress.tasks[t.id]?.status !== 'done')) return false;
     if (filters.status === 'new' && (progress && progress.tasks[t.id]?.status === 'done')) return false;
     if (filters.search) {
@@ -152,7 +158,7 @@ function render() {
         <h2 style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           ${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
           <span>${m ? escapeHtml(m.title) : modId}</span>
-          ${m && state.lessonsMap && state.lessonsMap[m.id] ? `<a href="/pages/lesson.html?id=${m.id}" class="btn btn-ghost" style="padding:4px 10px;font-size:13px">Открыть урок</a>` : ''}
+          ${m && state.lessonsMap && state.lessonsMap[m.id] ? `<a href="/pages/lesson.html?id=${m.id}" class="btn btn-success" style="padding:6px 14px;font-size:13px;display:inline-flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/3273/3273259.png" style="width:14px;height:14px"> Урок по теме</a>` : ''}
         </h2>
         ${m?.description ? `<p style="color:#64748b;margin-bottom:14px">${escapeHtml(m.description)}</p>` : ''}
         <div class="tasks-grid">

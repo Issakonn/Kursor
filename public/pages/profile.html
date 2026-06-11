@@ -67,7 +67,7 @@ function avatarBlock() {
     : `<div class="pa-fallback">${initial}</div>`;
   return `<div class="profile-avatar" onclick="openAvatarModal()" title="Сменить аватарку">
     ${body}
-    <div class="pa-hover"><div style="font-size:28px"></div><div>Сменить</div></div>
+    <div class="pa-hover"><img src="https://cdn-icons-png.flaticon.com/512/685/685655.png" style="width:28px;height:28px;filter:invert(1);margin-bottom:4px"><div>Сменить</div></div>
   </div>`;
 }
 
@@ -161,13 +161,13 @@ function openAvatarModal() {
       </div>
       <label class="av-drop" id="avDrop">
         <input type="file" id="avFile" accept="image/png,image/jpeg">
-        <div style="font-size:32px"></div>
+        <img src="https://cdn-icons-png.flaticon.com/512/126/126477.png" style="width:38px;height:38px;opacity:0.7;display:block;margin:0 auto 6px">
         <div><b>Выбери файл</b> или перетащи сюда</div>
         <div style="font-size:12px;color:#94a3b8;margin-top:4px">JPG/PNG · до 2 МБ</div>
       </label>
       <div id="avMsg" style="font-weight:700;margin:10px 0;min-height:20px;text-align:center"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-ghost" id="avDelBtn" style="color:#ef4444;${user.avatar_url ? '' : 'visibility:hidden'}">️ Удалить текущую</button>
+        <button class="btn btn-ghost" id="avDelBtn" style="color:#ef4444;display:inline-flex;align-items:center;gap:6px;${user.avatar_url ? '' : 'visibility:hidden'}"><img src="https://cdn-icons-png.flaticon.com/512/3221/3221897.png" style="width:16px;height:16px"> Удалить текущую</button>
         <div style="display:flex;gap:10px">
           <button class="btn btn-outline" id="avCancel">Отмена</button>
           <button class="btn btn-success" id="avSave" disabled>Сохранить</button>

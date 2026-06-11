@@ -49,12 +49,15 @@ const typeIcons = {
   scratch: '<img src="https://cdn-icons-png.flaticon.com/512/220/220112.png" style="width:16px;height:16px;vertical-align:-3px">',
   htmlcss: '<img src="https://cdn-icons-png.flaticon.com/512/919/919827.png" style="width:16px;height:16px;vertical-align:-3px">',
   blockly: '<img src="https://cdn-icons-png.flaticon.com/512/2103/2103658.png" style="width:16px;height:16px;vertical-align:-3px">',
+  java:    '<img src="/uploads/icons/java.svg" style="width:16px;height:16px;vertical-align:-3px">',
+  cpp:     '<img src="/uploads/icons/cpp.svg" style="width:16px;height:16px;vertical-align:-3px">',
 };
 const typeNames = {
-  quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код', project:'Мини-проект',
-  scratch:'Scratch-проект', htmlcss:'HTML / CSS живое превью', blockly:'Blockly-блоки'
+  quiz:'Тест с выбором', fill:'Заполни пропуск', order:'Расставь по порядку', code:'Напиши код (Python)', project:'Мини-проект',
+  scratch:'Интерактивная задача', htmlcss:'Интерактивная задача', blockly:'Интерактивная задача',
+  java:'Напиши код (Java)', cpp:'Напиши код (C++)'
 };
-const points = { quiz:10, fill:15, order:20, code:25, project:50, scratch:40, htmlcss:30, blockly:35 };
+const points = { quiz:10, fill:15, order:20, code:25, project:50, scratch:40, htmlcss:30, blockly:35, java:30, cpp:30 };
 
 function render() {
   const { task, mod, lang } = state;
@@ -224,6 +227,26 @@ function renderSolver(task) {
         </div>
         <pre id="blocklyOutput" style="background:#1e293b;color:#a7f3d0;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap;margin-top:10px;min-height:60px">// здесь появится сгенерированный код</pre>`;
     }
+
+    case 'java':
+    case 'cpp': {
+      const langLabel = task.type === 'java' ? 'Java' : 'C++';
+      const defaultStarter = task.type === 'java'
+        ? 'import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        // твой код\n        System.out.println("Hello");\n    }\n}\n'
+        : '#include <iostream>\nusing namespace std;\n\nint main() {\n    // твой код\n    cout << "Hello" << endl;\n    return 0;\n}\n';
+      const starter = task.starter || defaultStarter;
+      return `
+        <p style="margin-bottom:10px;color:#64748b">Напиши код на <b>${langLabel}</b>. Что должна вывести программа:
+          <code style="display:block;background:#1e293b;color:#a7f3d0;padding:8px;border-radius:6px;margin-top:6px;white-space:pre-wrap">${escapeHtml(task.expectedOutput || '')}</code>
+        </p>
+        <textarea class="code-input" id="codeInput" spellcheck="false" style="min-height:280px">${escapeHtml(starter)}</textarea>
+        ${task.stdin ? `<label style="display:block;margin-top:10px;color:#64748b;font-size:13px">Ввод (stdin):</label><textarea class="code-input" id="stdinInput" spellcheck="false" style="min-height:60px">${escapeHtml(task.stdin)}</textarea>` : ''}
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="runNative('${task.type}')" id="runBtn" style="display:flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/6062/6062646.png" style="width:16px;height:16px"> Запустить</button>
+          <span id="runStatus" style="color:#64748b;font-size:13px"></span>
+        </div>
+        <div id="runOutput" style="margin-top:10px"></div>`;
+    }
   }
 }
 
@@ -361,6 +384,10 @@ async function checkAnswer() {
     case 'code':
       await runPython(true);
       return;
+    case 'java':
+    case 'cpp':
+      await runNative(task.type, true);
+      return;
     case 'project':
       const pv = document.getElementById('projectInput').value.trim();
       if (pv.length < 10) { showFeedback(false, 'Опиши подробнее (мин. 10 символов).'); return; }
@@ -493,6 +520,70 @@ async function runPython(autoCheck = false) {
   } catch (e) {
     document.getElementById('runStatus').textContent = '';
     out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">Ошибка: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+/* ===== Запуск кода на Java / C++ через публичный Piston API =====
+   https://github.com/engineer-man/piston — без ключа, бесплатно. */
+async function runNative(lang, autoCheck = false) {
+  const task = state.task;
+  const code = document.getElementById('codeInput').value;
+  const stdinEl = document.getElementById('stdinInput');
+  const stdin = stdinEl ? stdinEl.value : (task.stdin || '');
+  const out = document.getElementById('runOutput');
+  const statusEl = document.getElementById('runStatus');
+  const runBtn = document.getElementById('runBtn');
+  if (runBtn) runBtn.disabled = true;
+  statusEl.textContent = lang === 'java' ? 'Компилирую Java...' : 'Компилирую C++...';
+
+  const payload = lang === 'java'
+    ? { language: 'java', version: '15.0.2',
+        files: [{ name: 'Main.java', content: code }],
+        stdin }
+    : { language: 'cpp', version: '10.2.0',
+        files: [{ name: 'main.cpp', content: code }],
+        stdin };
+
+  try {
+    const resp = await fetch('https://emkc.org/api/v2/piston/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) throw new Error('Сервис компиляции недоступен (HTTP ' + resp.status + ')');
+    const data = await resp.json();
+    const compileErr = data.compile && data.compile.stderr ? data.compile.stderr : '';
+    const runOut = (data.run && data.run.stdout) ? data.run.stdout : '';
+    const runErr = (data.run && data.run.stderr) ? data.run.stderr : '';
+
+    if (compileErr) {
+      statusEl.textContent = 'Ошибка компиляции';
+      out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">${escapeHtml(compileErr)}</div>`;
+      return;
+    }
+    statusEl.textContent = 'Готово';
+    const combined = (runOut + (runErr ? '\n' + runErr : '')).trim();
+    out.innerHTML = `<div style="background:#1e293b;color:#a7f3d0;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">${escapeHtml(combined || '(нет вывода)')}</div>`;
+
+    const expected = (task.expectedOutput || '').trim();
+    if (expected) {
+      const normalize = s => s.replace(/\r\n/g, '\n').replace(/\s+$/g,'').trim();
+      await recordAttemptSafe(task.id);
+      const correct = normalize(runOut) === normalize(expected);
+      if (correct) {
+        let pts = points[lang]; if (!state.hintUsed) pts += 5;
+        await recordCompleteSafe(task.id, pts, state.hintUsed, code);
+        showFeedback(true, `Идеально! Вывод совпадает. +${pts} очков`);
+        fireConfetti();
+      } else if (autoCheck) {
+        showFeedback(false, 'Вывод не совпадает с ожидаемым. Сравни внимательно.');
+      }
+    }
+  } catch (e) {
+    statusEl.textContent = '';
+    out.innerHTML = `<div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:8px;font-family:Fira Code,monospace;white-space:pre-wrap">Ошибка: ${escapeHtml(e.message)}</div>`;
+  } finally {
+    if (runBtn) runBtn.disabled = false;
   }
 }
 </script>

@@ -34,6 +34,7 @@
 const user = requireAuth(['admin','teacher']);
 let currentTab = 'dashboard';
 let cache = { users: [], modules: [], tasks: [], progressById: {} };
+let _renderToken = 0;
 
 document.querySelectorAll('.admin-sidebar a[data-tab]').forEach(a => {
   a.onclick = e => {
@@ -47,31 +48,46 @@ document.querySelectorAll('.admin-sidebar a[data-tab]').forEach(a => {
 
 if (user) render();
 
-async function loadAll() {
-  const [users, modules, tasks] = await Promise.all([
-    API.getUsers(true), API.getModules(true), API.getTasks(true),
+function _withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Тайм-аут запроса: ' + label)), ms))
   ]);
-  cache.users = users;
-  cache.modules = modules;
-  cache.tasks = tasks;
+}
+
+async function loadAll() {
+  const [users, modules, tasks] = await _withTimeout(Promise.all([
+    API.getUsers(true), API.getModules(true), API.getTasks(true),
+  ]), 15000, 'users/modules/tasks');
+  cache.users = users || [];
+  cache.modules = modules || [];
+  cache.tasks = tasks || [];
   try {
-    const allProgress = await API.getAllProgress();
-    cache.progressById = Object.fromEntries(allProgress.map(p => [p.userId, p]));
-  } catch { cache.progressById = {}; }
+    const allProgress = await _withTimeout(API.getAllProgress(), 15000, 'progress');
+    cache.progressById = Object.fromEntries((allProgress || []).map(p => [p.userId, p]));
+  } catch (e) { console.warn('progress load failed:', e.message); cache.progressById = {}; }
 }
 
 async function render() {
+  const myToken = ++_renderToken;
   document.getElementById('tab').innerHTML = 'Загружаем…';
   try { await loadAll(); }
   catch (e) {
-    document.getElementById('tab').innerHTML = `<div class="card" style="padding:30px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`;
+    if (myToken !== _renderToken) return;
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:30px;color:#ef4444">Ошибка загрузки: ${escapeHtml(e.message)}<br><br><button class="btn" onclick="render()">Повторить</button></div>`;
     return;
   }
-  switch (currentTab) {
-    case 'dashboard': renderDashboard(); break;
-    case 'users': renderUsers(); break;
-    case 'modules': renderModules(); break;
-    case 'tasks': renderTasks(); break;
+  if (myToken !== _renderToken) return;  // пользователь уже переключил вкладку
+  try {
+    switch (currentTab) {
+      case 'dashboard': renderDashboard(); break;
+      case 'users': renderUsers(); break;
+      case 'modules': renderModules(); break;
+      case 'tasks': renderTasks(); break;
+    }
+  } catch (e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:30px;color:#ef4444">Ошибка отрисовки "${currentTab}": ${escapeHtml(e.message)}</div>`;
+    console.error(e);
   }
 }
 
@@ -318,11 +334,18 @@ function renderTasks() {
         ${cache.tasks.map(t => {
           const m = cache.modules.find(m => m.id === t.module);
           const lang = m ? KURSOR_DB.LANGS[m.lang] : null;
-          const typeEmoji = { quiz:'Тест', fill:'Пропуск', order:'Порядок', code:'Код (Python)', project:'Проект', scratch:'Интеракт.', htmlcss:'Интеракт.', blockly:'Интеракт.', java:'Код (Java)', cpp:'Код (C++)' };
+          const typeLabel = {
+            quiz:'📝 Тест', fill:'✏️ Пропуск', order:'🔢 Порядок',
+            code:'🐍 Код Python', java:'☕ Код Java', cpp:'⚡ Код C++',
+            project:'📁 Проект',
+            scratch:'🐱 Интерактив (Scratch)',
+            htmlcss:'🌐 Интерактив (HTML)',
+            blockly:'🧩 Интерактив (Blockly)'
+          };
           return `
             <tr data-search="${escapeHtml((t.title + ' ' + (m?.title||'') + ' ' + (lang?.name||'')).toLowerCase())}">
               <td>${t.id}</td>
-              <td>${typeEmoji[t.type]} ${t.type}</td>
+              <td>${typeLabel[t.type] || t.type}</td>
               <td>${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"></span>` : ''} ${m ? escapeHtml(m.title) : '<span style="color:red">нет модуля</span>'}</td>
               <td><b>${escapeHtml(t.title)}</b></td>
               <td>${'★'.repeat(t.difficulty||1)}</td>

@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS modules (
 CREATE TABLE IF NOT EXISTS tasks (
   id              INTEGER PRIMARY KEY,
   module_id       TEXT NOT NULL,
-  type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project','scratch','blockly','htmlcss')),
+  type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project','scratch','blockly','htmlcss','java','cpp')),
   title           TEXT NOT NULL,
   description     TEXT,
   difficulty      INTEGER DEFAULT 1,
@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   items           TEXT,
   expected_output TEXT,
   starter         TEXT,
+  stdin           TEXT,
   FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE
 );
 
@@ -116,12 +117,19 @@ try {
   }
 } catch {}
 
-// Миграция: расширяем CHECK constraint tasks.type для новых типов (scratch, blockly, htmlcss)
+// Миграция: расширяем CHECK constraint tasks.type для новых типов (scratch, blockly, htmlcss, java, cpp)
 // SQLite не поддерживает ALTER TABLE для изменения CHECK — пересоздаём таблицу
 try {
   const tasksSql = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='tasks'").get();
-  const needsMigration = tasksSql && !tasksSql.sql.includes("'scratch'");
+  const needsMigration = tasksSql && !tasksSql.sql.includes("'java'");
   if (needsMigration) {
+    // собираем список колонок в старой таблице — копируем только их
+    const oldCols = db.prepare("PRAGMA table_info(tasks)").all().map(c => c.name);
+    const newCols = ['id','module_id','type','title','description','difficulty','explain',
+                     'options','answer','items','expected_output','starter'];
+    if (oldCols.includes('scratch_project_id')) newCols.push('scratch_project_id');
+    if (oldCols.includes('stdin')) newCols.push('stdin');
+    const copyCols = newCols.filter(c => oldCols.includes(c)).join(',');
     db.exec(`
       PRAGMA foreign_keys = OFF;
       BEGIN;
@@ -129,7 +137,7 @@ try {
       CREATE TABLE tasks (
         id              INTEGER PRIMARY KEY,
         module_id       TEXT NOT NULL,
-        type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project','scratch','blockly','htmlcss')),
+        type            TEXT NOT NULL CHECK(type IN ('quiz','fill','order','code','project','scratch','blockly','htmlcss','java','cpp')),
         title           TEXT NOT NULL,
         description     TEXT,
         difficulty      INTEGER DEFAULT 1,
@@ -139,25 +147,31 @@ try {
         items           TEXT,
         expected_output TEXT,
         starter         TEXT,
+        stdin           TEXT,
+        scratch_project_id TEXT,
         FOREIGN KEY (module_id) REFERENCES modules(id) ON DELETE CASCADE
       );
-      INSERT INTO tasks SELECT * FROM tasks_old;
+      INSERT INTO tasks (${copyCols}) SELECT ${copyCols} FROM tasks_old;
       DROP TABLE tasks_old;
       COMMIT;
       PRAGMA foreign_keys = ON;
     `);
-    console.log('[db] Миграция tasks: CHECK constraint обновлён для новых типов.');
+    console.log('[db] Миграция tasks: CHECK расширен (java, cpp), добавлены stdin, scratch_project_id.');
   }
 } catch (e) {
   console.error('[db] Ошибка миграции tasks:', e.message);
 }
 
-// Миграция: добавляем scratch_project_id в старые базы
+// Миграция: добавляем отдельные колонки, если их нет
 try {
   const cols = db.prepare("PRAGMA table_info(tasks)").all();
   if (!cols.some(c => c.name === 'scratch_project_id')) {
     db.prepare("ALTER TABLE tasks ADD COLUMN scratch_project_id TEXT").run();
     console.log('[db] Миграция tasks: добавлена колонка scratch_project_id');
+  }
+  if (!cols.some(c => c.name === 'stdin')) {
+    db.prepare("ALTER TABLE tasks ADD COLUMN stdin TEXT").run();
+    console.log('[db] Миграция tasks: добавлена колонка stdin');
   }
 } catch {}
 

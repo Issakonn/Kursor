@@ -28,6 +28,7 @@ function taskRow(r) {
   if (r.items) t.items = JSON.parse(r.items);
   if (r.expected_output) t.expectedOutput = r.expected_output;
   if (r.starter) t.starter = r.starter;
+  if (r.stdin) t.stdin = r.stdin;
   if (r.scratch_project_id) t.scratchProjectId = r.scratch_project_id;
   return t;
 }
@@ -85,15 +86,16 @@ router.post('/tasks', requireRole('admin', 'teacher'), (req, res) => {
   const id = t.id || nextId;
   db.prepare(`
     INSERT INTO tasks (id, module_id, type, title, description, difficulty, explain,
-                       options, answer, items, expected_output, starter)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       options, answer, items, expected_output, starter, stdin)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id, t.module, t.type, t.title, t.description || '', t.difficulty || 1, t.explain || '',
     t.options ? JSON.stringify(t.options) : null,
     t.answer !== undefined && t.answer !== null ? String(t.answer) : null,
     t.items ? JSON.stringify(t.items) : null,
     t.expectedOutput || null,
-    t.starter || null
+    t.starter || null,
+    t.stdin || null
   );
   if (t.scratchProjectId !== undefined) {
     db.prepare('UPDATE tasks SET scratch_project_id=? WHERE id=?').run(t.scratchProjectId || null, id);
@@ -108,7 +110,7 @@ router.put('/tasks/:id', requireRole('admin', 'teacher'), (req, res) => {
   const t = req.body || {};
   db.prepare(`
     UPDATE tasks SET module_id=?, type=?, title=?, description=?, difficulty=?, explain=?,
-                     options=?, answer=?, items=?, expected_output=?, starter=?
+                     options=?, answer=?, items=?, expected_output=?, starter=?, stdin=?
     WHERE id=?
   `).run(
     t.module || cur.module_id,
@@ -122,6 +124,7 @@ router.put('/tasks/:id', requireRole('admin', 'teacher'), (req, res) => {
     t.items !== undefined ? (t.items ? JSON.stringify(t.items) : null) : cur.items,
     t.expectedOutput !== undefined ? t.expectedOutput : cur.expected_output,
     t.starter !== undefined ? t.starter : cur.starter,
+    t.stdin !== undefined ? t.stdin : cur.stdin,
     id
   );
   if (t.scratchProjectId !== undefined) {

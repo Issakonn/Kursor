@@ -61,8 +61,8 @@ function seedContent() {
   const insertTask = db.prepare(`
     INSERT OR REPLACE INTO tasks
       (id, module_id, type, title, description, difficulty, explain,
-       options, answer, items, expected_output, starter)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       options, answer, items, expected_output, starter, stdin, scratch_project_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const txn = db.transaction(() => {
@@ -70,15 +70,21 @@ function seedContent() {
       insertMod.run(m.id, m.lang, m.title, m.description || '', m.video || '', m.explanation || '', i);
     });
     (KDB.TASKS || []).forEach(t => {
-      insertTask.run(
-        t.id, t.module, t.type, t.title, t.description || '',
-        t.difficulty || 1, t.explain || '',
-        t.options ? JSON.stringify(t.options) : null,
-        t.answer !== undefined && t.answer !== null ? String(t.answer) : null,
-        t.items ? JSON.stringify(t.items) : null,
-        t.expectedOutput || null,
-        t.starter || null
-      );
+      try {
+        insertTask.run(
+          t.id, t.module, t.type, t.title, t.description || '',
+          t.difficulty || 1, t.explain || '',
+          t.options ? JSON.stringify(t.options) : null,
+          t.answer !== undefined && t.answer !== null ? String(t.answer) : null,
+          t.items ? JSON.stringify(t.items) : null,
+          t.expectedOutput || null,
+          t.starter || null,
+          t.stdin || null,
+          t.scratchProjectId || null
+        );
+      } catch (e) {
+        console.warn('[init] Пропускаю задачу id=' + t.id + ' (' + t.type + '): ' + e.message);
+      }
     });
   });
   txn();

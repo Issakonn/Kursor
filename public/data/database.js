@@ -1408,6 +1408,64 @@ const TASKS = [
     expectedOutput:'81',
     starter:'#include <iostream>\nusing namespace std;\nint main() {\n    int n;\n    cin >> n;\n    // выведи n*n\n    \n    return 0;\n}\n',
     explain:'cout << n*n << endl;' },
+
+  // === ДОПОЛНИТЕЛЬНЫЕ JAVA ===
+  { id:205, module:'java_1', type:'java', title:'Имя и приветствие', difficulty:2,
+    description:'Считай строку со ввода и выведи Hello, <имя>!',
+    stdin:'Алия\n',
+    expectedOutput:'Hello, Алия!',
+    starter:'import java.util.Scanner;\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        String name = sc.nextLine();\n        // выведи приветствие\n        \n    }\n}\n',
+    explain:'System.out.println("Hello, " + name + "!");' },
+
+  { id:206, module:'java_2', type:'java', title:'Чётное или нечётное', difficulty:2,
+    description:'Считай число. Если чётное — выведи even, иначе odd.',
+    stdin:'7\n',
+    expectedOutput:'odd',
+    starter:'import java.util.Scanner;\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        // if (n % 2 == 0) ...\n        \n    }\n}\n',
+    explain:'Используй if-else и оператор %.' },
+
+  { id:207, module:'java_3', type:'java', title:'Сумма от 1 до N', difficulty:2,
+    description:'Считай N. Выведи сумму 1+2+...+N.',
+    stdin:'10\n',
+    expectedOutput:'55',
+    starter:'import java.util.Scanner;\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        int sum = 0;\n        // for (int i = 1; i <= n; i++) sum += i;\n        \n        System.out.println(sum);\n    }\n}\n',
+    explain:'Цикл for от 1 до n включительно.' },
+
+  { id:208, module:'java_4', type:'java', title:'Максимум из трёх', difficulty:3,
+    description:'Считай 3 числа в разных строках. Выведи наибольшее из них.',
+    stdin:'4\n9\n2\n',
+    expectedOutput:'9',
+    starter:'import java.util.Scanner;\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt(), b = sc.nextInt(), c = sc.nextInt();\n        // используй Math.max\n        \n    }\n}\n',
+    explain:'Math.max(a, Math.max(b, c))' },
+
+  // === ДОПОЛНИТЕЛЬНЫЕ C++ ===
+  { id:209, module:'cpp_1', type:'cpp', title:'Сумма двух чисел (C++)', difficulty:2,
+    description:'Считай два целых числа и выведи их сумму.',
+    stdin:'12 30\n',
+    expectedOutput:'42',
+    starter:'#include <iostream>\nusing namespace std;\nint main() {\n    int a, b;\n    cin >> a >> b;\n    // cout << ...\n    \n    return 0;\n}\n',
+    explain:'cout << a + b << endl;' },
+
+  { id:210, module:'cpp_2', type:'cpp', title:'Проверка положительности', difficulty:2,
+    description:'Считай число. Если > 0 — выведи positive, если < 0 — negative, иначе zero.',
+    stdin:'-5\n',
+    expectedOutput:'negative',
+    starter:'#include <iostream>\nusing namespace std;\nint main() {\n    int n;\n    cin >> n;\n    // if/else if/else\n    \n    return 0;\n}\n',
+    explain:'Цепочка if / else if / else.' },
+
+  { id:211, module:'cpp_3', type:'cpp', title:'Произведение элементов', difficulty:3,
+    description:'Считай N, потом N чисел. Выведи их произведение.',
+    stdin:'4\n2 3 4 5\n',
+    expectedOutput:'120',
+    starter:'#include <iostream>\nusing namespace std;\nint main() {\n    int n;\n    cin >> n;\n    long long p = 1;\n    for (int i = 0; i < n; i++) {\n        int x; cin >> x;\n        // p *= x;\n    }\n    cout << p << endl;\n    return 0;\n}\n',
+    explain:'Накопление в переменную p через *=.' },
+
+  { id:212, module:'cpp_4', type:'cpp', title:'Факториал N', difficulty:3,
+    description:'Считай N (1 ≤ N ≤ 12). Выведи N! (факториал).',
+    stdin:'6\n',
+    expectedOutput:'720',
+    starter:'#include <iostream>\nusing namespace std;\nint main() {\n    int n;\n    cin >> n;\n    long long f = 1;\n    // for (int i = 2; i <= n; i++) f *= i;\n    \n    cout << f << endl;\n    return 0;\n}\n',
+    explain:'Можно циклом или рекурсией.' },
 ];
 
 /* ===== ЗНАЧКИ (achievements) ===== */

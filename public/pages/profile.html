@@ -22,14 +22,23 @@
     font-size:13px; font-weight:700; opacity:0; transition:opacity 0.2s; text-align:center;
   }
   .profile-avatar:hover .pa-hover { opacity:1; }
-  .av-preview { width:200px; height:200px; margin:14px auto; border-radius:50%; overflow:hidden;
+  .av-preview {
+    width:160px; height:160px; margin:16px auto;
+    border-radius:50%; overflow:hidden;
     background:#f1f5f9; display:flex; align-items:center; justify-content:center;
-    border:3px dashed #cbd5e1; color:#94a3b8; font-size:14px; }
+    border:3px dashed #cbd5e1; color:#94a3b8; font-size:13px; text-align:center;
+    flex-shrink:0;
+  }
   .av-preview img { width:100%; height:100%; object-fit:cover; }
-  .av-drop { border:2px dashed #cbd5e1; background:#f8fafc; border-radius:12px;
-    padding:18px; text-align:center; color:#64748b; cursor:pointer; transition:all 0.2s; }
+  .av-drop {
+    border:2px dashed #cbd5e1; background:#f8fafc; border-radius:12px;
+    padding:18px; text-align:center; color:#64748b; cursor:pointer; transition:all 0.2s;
+    display:block;
+  }
   .av-drop.dragover { border-color:#6366f1; background:#eef2ff; color:#4f46e5; }
   .av-drop input { display:none; }
+  /* Фикс: overlay блокирует скролл страницы и не даёт вылезать фоновым элементам */
+  body.modal-open { overflow:hidden; }
 </style>
 </head>
 <body>
@@ -142,22 +151,27 @@ function render(tasks, modules, progress) {
             <a href="/pages/task.html?id=${r.task.id}" class="btn btn-ghost">→</a>
           </div>`;
         }).join('')}
-      </div>` : '<div class="card" style="text-align:center;padding:30px;color:#64748b">Пока нет решённых задач </div>'}
+      </div>` : '<div class="card" style="text-align:center;padding:30px;color:#64748b">Пока нет решённых задач 😊</div>'}
   `;
 }
 
-/* ===== АВАТАРКА: модалка выбора файла + превью ===== */
+/* ===== АВАТАРКА ===== */
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 
 function openAvatarModal() {
+  // Блокируем скролл страницы
+  document.body.classList.add('modal-open');
+
   const modal = document.createElement('div');
   modal.className = 'modal-overlay active';
+  // Гарантируем что overlay перекрывает всё
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
-    <div class="modal">
+    <div class="modal" style="max-width:420px;width:100%;position:relative;">
       <h2>Сменить аватарку</h2>
       <p style="color:#64748b;font-size:13px;margin-top:4px">JPG или PNG, до 2 МБ. Ничего не загружается, пока ты не нажмёшь «Сохранить».</p>
       <div class="av-preview" id="avPrev">
-        ${user.avatar_url ? `<img src="${escapeHtml(user.avatar_url)}" alt="">` : 'Превью появится здесь'}
+        ${user.avatar_url ? `<img src="${escapeHtml(user.avatar_url)}" alt="">` : '<span style="padding:10px">Превью появится здесь</span>'}
       </div>
       <label class="av-drop" id="avDrop">
         <input type="file" id="avFile" accept="image/png,image/jpeg">
@@ -166,8 +180,10 @@ function openAvatarModal() {
         <div style="font-size:12px;color:#94a3b8;margin-top:4px">JPG/PNG · до 2 МБ</div>
       </label>
       <div id="avMsg" style="font-weight:700;margin:10px 0;min-height:20px;text-align:center"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-ghost" id="avDelBtn" style="color:#ef4444;display:inline-flex;align-items:center;gap:6px;${user.avatar_url ? '' : 'visibility:hidden'}"><img src="https://cdn-icons-png.flaticon.com/512/3221/3221897.png" style="width:16px;height:16px"> Удалить текущую</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px">
+        <button class="btn btn-ghost" id="avDelBtn" style="color:#ef4444;display:inline-flex;align-items:center;gap:6px;${user.avatar_url ? '' : 'visibility:hidden'}">
+          <img src="https://cdn-icons-png.flaticon.com/512/3221/3221897.png" style="width:16px;height:16px"> Удалить
+        </button>
         <div style="display:flex;gap:10px">
           <button class="btn btn-outline" id="avCancel">Отмена</button>
           <button class="btn btn-success" id="avSave" disabled>Сохранить</button>
@@ -175,6 +191,11 @@ function openAvatarModal() {
       </div>
     </div>`;
   document.body.appendChild(modal);
+
+  function closeModal() {
+    modal.remove();
+    document.body.classList.remove('modal-open');
+  }
 
   const fileInput = modal.querySelector('#avFile');
   const drop = modal.querySelector('#avDrop');
@@ -184,22 +205,22 @@ function openAvatarModal() {
   const delBtn = modal.querySelector('#avDelBtn');
   let pendingDataUrl = null;
 
-  function err(t) { msg.style.color = '#ef4444'; msg.textContent = t; }
-  function ok(t)  { msg.style.color = '#10b981'; msg.textContent = t; }
+  function showErr(t) { msg.style.color = '#ef4444'; msg.textContent = t; }
+  function showOk(t)  { msg.style.color = '#10b981'; msg.textContent = t; }
 
   function handle(file) {
     msg.textContent = ''; pendingDataUrl = null; saveBtn.disabled = true;
     if (!file) return;
-    if (!/^image\/(png|jpe?g)$/.test(file.type)) return err('Только JPG или PNG');
-    if (file.size > MAX_AVATAR_BYTES) return err(`Файл ${(file.size/1024/1024).toFixed(2)} МБ — макс 2 МБ`);
+    if (!/^image\/(png|jpe?g)$/.test(file.type)) return showErr('Только JPG или PNG');
+    if (file.size > MAX_AVATAR_BYTES) return showErr(`Файл ${(file.size/1024/1024).toFixed(2)} МБ — макс 2 МБ`);
     const r = new FileReader();
     r.onload = () => {
       pendingDataUrl = r.result;
       prev.innerHTML = `<img src="${pendingDataUrl}" alt="Превью">`;
       saveBtn.disabled = false;
-      ok(`✓ ${file.name} (${(file.size/1024).toFixed(0)} КБ)`);
+      showOk(`✓ ${file.name} (${(file.size/1024).toFixed(0)} КБ)`);
     };
-    r.onerror = () => err('Не удалось прочитать');
+    r.onerror = () => showErr('Не удалось прочитать');
     r.readAsDataURL(file);
   }
 
@@ -208,8 +229,8 @@ function openAvatarModal() {
   ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('dragover'); }));
   drop.addEventListener('drop', e => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handle(f); });
 
-  modal.querySelector('#avCancel').onclick = () => modal.remove();
-  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  modal.querySelector('#avCancel').onclick = closeModal;
+  modal.onclick = e => { if (e.target === modal) closeModal(); };
 
   saveBtn.onclick = async () => {
     if (!pendingDataUrl) return;
@@ -217,11 +238,11 @@ function openAvatarModal() {
     try {
       const r = await API.uploadAvatar(user.id, pendingDataUrl);
       user.avatar_url = r.avatar_url;
-      modal.remove();
+      closeModal();
       showToast('Аватарка обновлена', 'success');
       document.getElementById('nav').innerHTML = renderNavbar('profile');
       init();
-    } catch (e) { err(e.message); saveBtn.disabled = false; saveBtn.textContent = 'Сохранить'; }
+    } catch (e) { showErr(e.message); saveBtn.disabled = false; saveBtn.textContent = 'Сохранить'; }
   };
 
   delBtn.onclick = async () => {
@@ -230,29 +251,36 @@ function openAvatarModal() {
     try {
       await API.deleteAvatar(user.id);
       user.avatar_url = null;
-      modal.remove();
+      closeModal();
       showToast('Аватарка удалена', 'success');
       document.getElementById('nav').innerHTML = renderNavbar('profile');
       init();
-    } catch (e) { err(e.message); delBtn.disabled = false; }
+    } catch (e) { showErr(e.message); delBtn.disabled = false; }
   };
 }
 
 function openChangePassword() {
+  document.body.classList.add('modal-open');
   const modal = document.createElement('div');
   modal.className = 'modal-overlay active';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
-    <div class="modal">
+    <div class="modal" style="max-width:420px;width:100%">
       <h2>Сменить пароль</h2>
       <div class="form-group"><label>Старый пароль</label><input class="form-input" type="password" id="oldp"></div>
       <div class="form-group"><label>Новый пароль (мин. 4 символа)</label><input class="form-input" type="password" id="newp"></div>
       <div id="cpMsg" style="color:#ef4444;font-weight:700;margin:8px 0;min-height:18px"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">Отмена</button>
+        <button class="btn btn-outline" id="cpCancel">Отмена</button>
         <button class="btn btn-success" id="cpBtn">Сохранить</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
+
+  function closeModal() { modal.remove(); document.body.classList.remove('modal-open'); }
+  modal.querySelector('#cpCancel').onclick = closeModal;
+  modal.onclick = e => { if (e.target === modal) closeModal(); };
+
   modal.querySelector('#cpBtn').onclick = async () => {
     const oldP = modal.querySelector('#oldp').value;
     const newP = modal.querySelector('#newp').value;
@@ -260,11 +288,10 @@ function openChangePassword() {
     msgEl.textContent = '';
     try {
       await API._request('POST', '/api/auth/change-password', { oldPassword: oldP, newPassword: newP });
-      modal.remove();
+      closeModal();
       showToast('Пароль изменён', 'success');
     } catch (e) { msgEl.textContent = e.message; }
   };
-  modal.onclick = e => { if (e.target === modal) modal.remove(); };
 }
 </script>
 </body>

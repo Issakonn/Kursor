@@ -7,6 +7,39 @@
 <link rel="icon" href="/uploads/mascot/happy.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
+<style>
+  .module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .module-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .lesson-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .lesson-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+</style>
 </head>
 <body>
 <div id="nav"></div>
@@ -60,8 +93,6 @@ async function init() {
       render();
     };
   });
-  // Кнопки внутри .filter-group переключают значение группы.
-  // Повторный клик по активной (не "Все") = сброс на "Все".
   document.querySelectorAll('.filter-group').forEach(group => {
     const f = group.dataset.filter;
     group.querySelectorAll('.filter-chip').forEach(b => {
@@ -124,8 +155,6 @@ function render() {
     if (filters.lang !== 'all' && m.lang !== filters.lang) return false;
     if (filters.type) {
       if (filters.type === 'interactive') {
-        // "Интерактивные" = все типы, где ученик руками что-то пишет / собирает:
-        // код (Python/Java/C++), Scratch-проект, HTML/CSS, Blockly-блоки
         if (!['code','java','cpp','scratch','htmlcss','blockly'].includes(t.type)) return false;
       } else if (t.type !== filters.type) return false;
     }
@@ -154,14 +183,21 @@ function render() {
   document.getElementById('tasksContainer').innerHTML = Object.entries(byModule).map(([modId, tList]) => {
     const m = modules.find(m => m.id === modId);
     const lang = m ? KURSOR_DB.LANGS[m.lang] : null;
+    const hasLesson = m && state.lessonsMap && state.lessonsMap[m.id];
+
     return `
       <div style="margin-bottom:32px">
-        <h2 style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          ${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
-          <span>${m ? escapeHtml(m.title) : modId}</span>
-          ${m && state.lessonsMap && state.lessonsMap[m.id] ? `<a href="/pages/lesson.html?id=${m.id}" class="btn btn-success" style="padding:6px 14px;font-size:13px;display:inline-flex;align-items:center;gap:6px"><img src="https://cdn-icons-png.flaticon.com/512/3273/3273259.png" style="width:14px;height:14px"> Урок по теме</a>` : ''}
-        </h2>
-        ${m?.description ? `<p style="color:#64748b;margin-bottom:14px">${escapeHtml(m.description)}</p>` : ''}
+        <div class="module-header">
+          <div class="module-header-left">
+            ${lang ? `<span class="lang-badge ${lang.class}"><img src="${lang.icon}" style="width:14px;height:14px;object-fit:contain;vertical-align:-2px"> ${lang.name}</span>` : ''}
+            <h2 style="margin:0">${m ? escapeHtml(m.title) : modId}</h2>
+          </div>
+          ${hasLesson ? `<a href="/pages/lesson.html?id=${m.id}" class="lesson-btn">
+            <img src="https://cdn-icons-png.flaticon.com/512/3273/3273259.png" style="width:15px;height:15px;filter:invert(1)">
+            Открыть урок
+          </a>` : ''}
+        </div>
+        ${m?.description ? `<p style="color:#64748b;margin-bottom:14px;margin-top:-6px">${escapeHtml(m.description)}</p>` : ''}
         <div class="tasks-grid">
           ${tList.sort((a,b)=>(a.difficulty||1)-(b.difficulty||1)).map(t => renderTaskCard(t, progress, m, lang)).join('')}
         </div>

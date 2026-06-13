@@ -337,84 +337,106 @@ function openFeedbackFormTeacher() {
   };
 }
 
-</script>
-</body>
-</html>
-<script>
-/* ===== ФАЗА 2 — Мои группы у учителя ===== */
+/* ============================================================
+   ФАЗА 2 — Мои группы (для учителя / ассистента)
+   ============================================================ */
+const WEEKDAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 
 async function showMyGroups() {
-  const section = document.getElementById('content');
-  
-  section.innerHTML = '<div style="padding:20px;color:#64748b">Загружаем группы…</div>';
-  
-
-  let groups, branches, tariffs, clients;
+  const content = document.getElementById('content');
+  content.innerHTML = 'Загружаем…';
+  let groups = [], branches = [], crm = [], perms = {};
   try {
-    [groups, branches, tariffs] = await Promise.all([
+    [groups, branches, crm, perms] = await Promise.all([
       API._request('GET', '/api/groups'),
-      API._request('GET', '/api/branches'),
-      API._request('GET', '/api/tariffs'),
+      API._request('GET', '/api/branches').catch(() => []),
+      API._request('GET', '/api/students-crm/me-as-teacher').catch(() => []),
+      API._request('GET', `/api/teacher-permissions/${user.id}`).catch(() => ({})),
     ]);
-    try { clients = await API._request('GET', '/api/students-crm'); } catch { clients = []; }
   } catch(e) {
-    section.innerHTML = `<div class="card" style="padding:20px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`;
+    content.innerHTML = `<div class="card" style="padding:24px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  const seeBalance = !!perms.see_subscription_balance;
+  const seeParents = !!perms.see_parent_contacts;
+
+  // загружаем расписание и состав всех групп параллельно
+  const detailsArr = await Promise.all(groups.map(async g => {
+    const [schedule, members] = await Promise.all([
+      API._request('GET', `/api/groups/${g.id}/schedule`).catch(()=>[]),
+      API._request('GET', `/api/groups/${g.id}/members`).catch(()=>[]),
+    ]);
+    return { group: g, schedule, members };
+  }));
+
+  if (!groups.length) {
+    content.innerHTML = `
+      <h1>Мои группы</h1>
+      <div class="card" style="padding:24px;color:#64748b;text-align:center;margin-top:14px">
+        Вы пока не назначены учителем или ассистентом ни в одну группу.
+      </div>
+      <button class="btn btn-outline" onclick="render()" style="margin-top:14px">← Назад</button>`;
     return;
   }
 
-  const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h1>Мои группы (${groups.length})</h1>
+      <button class="btn btn-outline" onclick="render()">← К ученикам</button>
+    </div>
+    <div style="margin-top:18px;display:grid;gap:18px">
+      ${detailsArr.map(d => {
+        const g = d.group;
+        const branch = branches.find(b => b.id === g.branchId);
+        const memberCrm = d.members.map(m => crm.find(c => c.userId === m.studentId)).filter(Boolean);
+        const scheduleHtml = d.schedule.length
+          ? `<table class="table" style="margin:0"><thead><tr><th>День</th><th>Время</th><th>Длительность</th></tr></thead>
+              <tbody>${d.schedule.map(s => `<tr><td>${WEEKDAYS_RU[s.weekday]}</td><td>${escapeHtml(s.startTime)}</td><td>${s.durationMin} мин</td></tr>`).join('')}</tbody></table>`
+          : '<p style="color:#64748b">Расписание не задано</p>';
+        const studentsHtml = d.members.length
+          ? `<table class="table" style="margin:0">
+              <thead><tr><th>Ученик</th>
+                ${seeParents ? '<th>Родитель</th>' : ''}
+                ${seeBalance ? '<th>Остаток</th>' : ''}
+                <th>Статус</th><th>С</th></tr></thead>
+              <tbody>${d.members.map(m => {
+                const c = crm.find(x => x.userId === m.studentId);
+                const name = c ? c.fullName : m.studentId;
+                const parent = c ? `${escapeHtml(c.parentName||'—')}${c.parentPhone?' ('+escapeHtml(c.parentPhone)+')':''}` : '—';
+                const left = c && c.visitsLeft != null ? c.visitsLeft : '—';
+                const st = c ? c.status : 'active';
+                const stBadge = st==='active' ? 'badge-success' : st==='frozen' ? 'badge-warning' : 'badge-danger';
+                return `<tr>
+                  <td><b>${escapeHtml(name)}</b></td>
+                  ${seeParents ? `<td>${parent}</td>` : ''}
+                  ${seeBalance ? `<td>${left}</td>` : ''}
+                  <td><span class="badge ${stBadge}">${st}</span></td>
+                  <td>${new Date(m.since).toLocaleDateString('ru')}</td>
+                </tr>`;
+              }).join('')}</tbody></table>`
+          : '<p style="color:#64748b">Учеников нет</p>';
 
-  let html = `<h2 class="section-title" style="margin-top:0">Мои группы</h2>`;
-  if (!groups.length) {
-    html += '<div class="card" style="padding:20px;color:#64748b">Вам не назначено ни одной группы.</div>';
-  } else {
-    for (const g of groups) {
-      let schedule = [], members = [];
-      try {
-        [schedule, members] = await Promise.all([
-          API._request('GET', `/api/groups/${g.id}/schedule`),
-          API._request('GET', `/api/groups/${g.id}/members`),
-        ]);
-      } catch {}
-
-      const branch = branches.find(b => b.id === g.branchId);
-      const schedStr = schedule.map(s => `${DAYS[s.weekday]} ${s.startTime} (${s.durationMin} мин)`).join(', ') || 'не задано';
-
-      html += `<div class="card" style="padding:20px;margin-bottom:20px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
-          <div>
-            <h3 style="margin:0 0 4px">${escapeHtml(g.name)}</h3>
+        return `<div class="card" style="padding:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <h2 style="margin:0">${escapeHtml(g.name)}
+              <span class="badge ${g.status==='active'?'badge-success':'badge-warning'}" style="font-size:11px">${g.status}</span>
+              ${g.lessonKind==='extra' ? '<span class="badge badge-info" style="font-size:11px">Доп.</span>' : ''}
+            </h2>
             <div style="color:#64748b;font-size:14px">
-              ${branch ? escapeHtml(branch.name) : ''} ·
-              <span class="badge ${g.lessonKind==='main'?'':'badge-warning'}">${g.lessonKind==='main'?'Основная':'Доп.'}</span> ·
-              <span class="badge ${g.status==='active'?'badge-success':'badge-danger'}">${g.status==='active'?'Активна':'Архив'}</span>
+              ${branch ? '🏢 ' + escapeHtml(branch.name) : ''}
+              ${g.assistantId === user.id ? ' · вы — ассистент' : ''}
             </div>
-            <div style="margin-top:6px;font-size:13px;color:#475569">📅 ${schedStr}</div>
           </div>
-          <span style="font-size:13px;color:#64748b">${members.length} учеников</span>
-        </div>
-        <table class="table" style="margin-top:14px">
-          <thead><tr><th>Ученик</th><th>Статус CRM</th><th>Занятий осталось</th><th>Тариф</th></tr></thead>
-          <tbody>
-            ${members.length ? members.map(m => {
-              const crm = clients.find(c => c.userId === m.studentId);
-              const tariff = crm ? tariffs.find(t => t.id === crm.tariffId) : null;
-              const statusLabel = {active:'Активный',frozen:'Заморожен',inactive:'Неактивный'}[crm?.status] || '—';
-              const statusClass = {active:'badge-success',frozen:'badge-warning',inactive:'badge-danger'}[crm?.status] || '';
-              const visitsStyle = (crm?.visitsLeft ?? 99) <= 2 ? 'color:#ef4444;font-weight:700' : '';
-              return `<tr>
-                <td><b>${escapeHtml(m.studentName || m.studentId)}</b></td>
-                <td>${crm ? `<span class="badge ${statusClass}">${statusLabel}</span>` : '<span style="color:#94a3b8">нет карточки</span>'}</td>
-                <td><span style="${visitsStyle}">${crm ? crm.visitsLeft : '—'}</span></td>
-                <td>${tariff ? escapeHtml(tariff.name) : '—'}</td>
-              </tr>`;
-            }).join('') : '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:16px">Нет учеников</td></tr>'}
-          </tbody>
-        </table>
-      </div>`;
-    }
-  }
-
-  section.innerHTML = html;
+          <h3 style="margin:14px 0 8px;font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:.06em">📅 Расписание</h3>
+          ${scheduleHtml}
+          <h3 style="margin:14px 0 8px;font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:.06em">👥 Ученики (${d.members.length})</h3>
+          ${studentsHtml}
+          ${!seeBalance ? '<p style="font-size:12px;color:#94a3b8;margin-top:8px">Остатки абонементов скрыты. Запросите право <code>see_subscription_balance</code> у администратора.</p>' : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
 }
+
 </script>
+</body>
+</html>

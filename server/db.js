@@ -155,6 +155,99 @@ CREATE INDEX IF NOT EXISTS idx_tca_teacher ON teacher_course_access(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_tca_course  ON teacher_course_access(course_id);
 `);
 
+/* ============================================================
+   ФАЗА 2 — CRM-ядро: филиалы, тарифы, группы, карточки клиентов
+   ============================================================ */
+db.exec(`
+CREATE TABLE IF NOT EXISTS branches (
+  id      TEXT PRIMARY KEY,
+  name    TEXT NOT NULL,
+  address TEXT
+);
+
+CREATE TABLE IF NOT EXISTS tariffs (
+  id                     TEXT PRIMARY KEY,
+  name                   TEXT NOT NULL,
+  visits_count           INTEGER NOT NULL,
+  duration_days          INTEGER NOT NULL,
+  price                  INTEGER DEFAULT 0,
+  extra_lessons_separate INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS groups (
+  id           TEXT PRIMARY KEY,
+  name         TEXT NOT NULL,
+  course_id    TEXT,
+  branch_id    TEXT NOT NULL,
+  teacher_id   TEXT NOT NULL,
+  assistant_id TEXT,
+  lesson_kind  TEXT NOT NULL CHECK(lesson_kind IN ('main','extra')),
+  status       TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','archived')),
+  FOREIGN KEY (branch_id)    REFERENCES branches(id),
+  FOREIGN KEY (teacher_id)   REFERENCES users(id),
+  FOREIGN KEY (assistant_id) REFERENCES users(id)
+);
+CREATE INDEX IF NOT EXISTS idx_groups_branch  ON groups(branch_id);
+CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_groups_assist  ON groups(assistant_id);
+
+CREATE TABLE IF NOT EXISTS group_schedule (
+  id           TEXT PRIMARY KEY,
+  group_id     TEXT NOT NULL,
+  weekday      INTEGER NOT NULL CHECK(weekday BETWEEN 0 AND 6),
+  start_time   TEXT NOT NULL,
+  duration_min INTEGER NOT NULL,
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_sched_group ON group_schedule(group_id);
+
+CREATE TABLE IF NOT EXISTS group_members (
+  id         TEXT PRIMARY KEY,
+  student_id TEXT NOT NULL,
+  group_id   TEXT NOT NULL,
+  since      INTEGER NOT NULL,
+  until      INTEGER,
+  FOREIGN KEY (student_id) REFERENCES users(id)  ON DELETE CASCADE,
+  FOREIGN KEY (group_id)   REFERENCES groups(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_gm_student ON group_members(student_id);
+CREATE INDEX IF NOT EXISTS idx_gm_group   ON group_members(group_id);
+
+CREATE TABLE IF NOT EXISTS students_crm (
+  user_id                TEXT PRIMARY KEY,
+  full_name              TEXT NOT NULL,
+  birth_date             TEXT,
+  gender                 TEXT CHECK(gender IN ('m','f') OR gender IS NULL),
+  branch_id              TEXT,
+  tariff_id              TEXT,
+  subscription_issued_at INTEGER,
+  visits_left            INTEGER DEFAULT 0,
+  status                 TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','frozen','inactive')),
+  responsible_manager_id TEXT,
+  parent_name            TEXT,
+  parent_phone           TEXT,
+  document_id            TEXT,
+  comment                TEXT,
+  video_consent          INTEGER NOT NULL DEFAULT 0,
+  video_consent_date     INTEGER,
+  FOREIGN KEY (user_id)               REFERENCES users(id)    ON DELETE CASCADE,
+  FOREIGN KEY (branch_id)             REFERENCES branches(id),
+  FOREIGN KEY (tariff_id)             REFERENCES tariffs(id),
+  FOREIGN KEY (responsible_manager_id) REFERENCES users(id)
+);
+CREATE INDEX IF NOT EXISTS idx_crm_branch  ON students_crm(branch_id);
+CREATE INDEX IF NOT EXISTS idx_crm_status  ON students_crm(status);
+CREATE INDEX IF NOT EXISTS idx_crm_manager ON students_crm(responsible_manager_id);
+
+CREATE TABLE IF NOT EXISTS teacher_permissions (
+  teacher_id     TEXT NOT NULL,
+  permission_key TEXT NOT NULL,
+  value          INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (teacher_id, permission_key),
+  FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+);
+`);
+
 // Миграция: добавляем avatar_url в старые базы (в SQLite нет IF NOT EXISTS для колонок)
 try {
   const cols = db.prepare("PRAGMA table_info(users)").all();
@@ -222,96 +315,3 @@ try {
 } catch {}
 
 module.exports = db;
-
-/* ============================================================
-   ФАЗА 2 — CRM-ядро: филиалы, тарифы, группы, клиенты, права
-   ============================================================ */
-db.exec(`
-CREATE TABLE IF NOT EXISTS branches (
-  id      TEXT PRIMARY KEY,
-  name    TEXT NOT NULL,
-  address TEXT
-);
-
-CREATE TABLE IF NOT EXISTS tariffs (
-  id                     TEXT PRIMARY KEY,
-  name                   TEXT NOT NULL,
-  visits_count           INTEGER NOT NULL,
-  duration_days          INTEGER NOT NULL,
-  price                  INTEGER DEFAULT 0,
-  extra_lessons_separate INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS groups (
-  id           TEXT PRIMARY KEY,
-  name         TEXT NOT NULL,
-  course_id    TEXT,
-  branch_id    TEXT NOT NULL,
-  teacher_id   TEXT NOT NULL,
-  assistant_id TEXT,
-  lesson_kind  TEXT NOT NULL CHECK(lesson_kind IN ('main','extra')),
-  status       TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','archived')),
-  FOREIGN KEY (branch_id)    REFERENCES branches(id),
-  FOREIGN KEY (teacher_id)   REFERENCES users(id),
-  FOREIGN KEY (assistant_id) REFERENCES users(id)
-);
-CREATE INDEX IF NOT EXISTS idx_groups_branch  ON groups(branch_id);
-CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id);
-
-CREATE TABLE IF NOT EXISTS group_schedule (
-  id           TEXT PRIMARY KEY,
-  group_id     TEXT NOT NULL,
-  weekday      INTEGER NOT NULL CHECK(weekday BETWEEN 0 AND 6),
-  start_time   TEXT NOT NULL,
-  duration_min INTEGER NOT NULL,
-  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_gs_group ON group_schedule(group_id);
-
-CREATE TABLE IF NOT EXISTS group_members (
-  id         TEXT PRIMARY KEY,
-  student_id TEXT NOT NULL,
-  group_id   TEXT NOT NULL,
-  since      INTEGER NOT NULL,
-  until      INTEGER,
-  FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (group_id)   REFERENCES groups(id) ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS idx_gm_student ON group_members(student_id);
-CREATE INDEX IF NOT EXISTS idx_gm_group   ON group_members(group_id);
-
-CREATE TABLE IF NOT EXISTS students_crm (
-  user_id                TEXT PRIMARY KEY,
-  full_name              TEXT NOT NULL,
-  birth_date             TEXT,
-  gender                 TEXT,
-  branch_id              TEXT,
-  tariff_id              TEXT,
-  subscription_issued_at INTEGER,
-  visits_left            INTEGER DEFAULT 0,
-  status                 TEXT NOT NULL DEFAULT 'active',
-  responsible_manager_id TEXT,
-  parent_name            TEXT,
-  parent_phone           TEXT,
-  document_id            TEXT,
-  comment                TEXT,
-  video_consent          INTEGER NOT NULL DEFAULT 0,
-  video_consent_date     INTEGER,
-  FOREIGN KEY (user_id)                REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (branch_id)              REFERENCES branches(id),
-  FOREIGN KEY (tariff_id)              REFERENCES tariffs(id),
-  FOREIGN KEY (responsible_manager_id) REFERENCES users(id)
-);
-CREATE INDEX IF NOT EXISTS idx_scrm_branch  ON students_crm(branch_id);
-CREATE INDEX IF NOT EXISTS idx_scrm_status  ON students_crm(status);
-
-CREATE TABLE IF NOT EXISTS teacher_permissions (
-  id             TEXT PRIMARY KEY,
-  teacher_id     TEXT NOT NULL,
-  permission_key TEXT NOT NULL,
-  value          INTEGER NOT NULL DEFAULT 1,
-  FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
-  UNIQUE(teacher_id, permission_key)
-);
-CREATE INDEX IF NOT EXISTS idx_tp_teacher ON teacher_permissions(teacher_id);
-`);

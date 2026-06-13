@@ -23,11 +23,11 @@
     <a href="#" data-tab="feedback">Отзывы</a>
     <a href="#" data-tab="exportimport">Импорт / Экспорт</a>
     <div style="border-top:1px solid rgba(255,255,255,0.15);margin:12px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,0.4);padding-top:10px">Фаза 2 — CRM</div>
-    <a href="#" data-tab="branches">🏢 Филиалы</a>
-    <a href="#" data-tab="tariffs">💳 Тарифы</a>
-    <a href="#" data-tab="groups">👥 Группы</a>
-    <a href="#" data-tab="clients">🧒 Клиенты</a>
-    <a href="#" data-tab="permissions">🔑 Права учителей</a>
+    <a href="#" data-tab="branches">Филиалы</a>
+    <a href="#" data-tab="tariffs">Тарифы</a>
+    <a href="#" data-tab="groups">Группы</a>
+    <a href="#" data-tab="clients">Клиенты</a>
+    <a href="#" data-tab="teacherperms">Права учителей</a>
     <a href="#" onclick="logout();return false;" style="margin-top:30px;color:#ef4444">Выйти</a>
   </aside>
   <main class="admin-main">
@@ -97,11 +97,11 @@ async function render() {
       case 'materials': renderMaterials(); break;
       case 'feedback': renderFeedbackTab(); break;
       case 'exportimport': renderExportImport(); break;
-      case 'branches': renderBranches(); break;
-      case 'tariffs': renderTariffs(); break;
-      case 'groups': renderGroups(); break;
-      case 'clients': renderClients(); break;
-      case 'permissions': renderPermissions(); break;
+      case 'branches':     renderBranches(); break;
+      case 'tariffs':      renderTariffs(); break;
+      case 'groups':       renderGroups(); break;
+      case 'clients':      renderClients(); break;
+      case 'teacherperms': renderTeacherPerms(); break;
     }
   } catch (e) {
     document.getElementById('tab').innerHTML = `<div class="card" style="padding:30px;color:#ef4444">Ошибка отрисовки "${currentTab}": ${escapeHtml(e.message)}</div>`;
@@ -909,71 +909,54 @@ async function doImport(dryRun) {
   }
 }
 
-function closeModal() { document.getElementById('modal').classList.remove('active'); }
-document.getElementById('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
-</script>
-</body>
-</html>
-<script>
 /* ============================================================
-   ФАЗА 2 — CRM: Филиалы, Тарифы, Группы, Клиенты, Права
+   ФАЗА 2 — CRM-ЯДРО: филиалы, тарифы, группы, клиенты, права
    ============================================================ */
+const WEEKDAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+let crmCache = { branches: [], tariffs: [], groups: [], clients: [], schedule: {}, members: {}, perms: {} };
 
-// ─── CRM cache ────────────────────────────────────────────
-let crm = { branches:[], tariffs:[], groups:[], clients:[] };
-
-async function loadCRM() {
+async function loadCrmCore() {
   const [branches, tariffs, groups] = await Promise.all([
-    API._request('GET','/api/branches'),
-    API._request('GET','/api/tariffs'),
-    API._request('GET','/api/groups'),
+    API._request('GET', '/api/branches').catch(()=>[]),
+    API._request('GET', '/api/tariffs').catch(()=>[]),
+    API._request('GET', '/api/groups').catch(()=>[]),
   ]);
-  crm.branches = branches || [];
-  crm.tariffs  = tariffs  || [];
-  crm.groups   = groups   || [];
-  try {
-    crm.clients = await API._request('GET','/api/students-crm');
-  } catch { crm.clients = []; }
+  crmCache.branches = branches; crmCache.tariffs = tariffs; crmCache.groups = groups;
 }
 
-// ─── helper to show loading state ─────────────────────────
-function crmWrap(fn) {
-  return async function() {
-    document.getElementById('tab').innerHTML = 'Загружаем…';
-    try { await loadCRM(); fn(); }
-    catch(e) { document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`; }
-  };
-}
-
-// ─── BRANCHES ─────────────────────────────────────────────
-const renderBranches = crmWrap(function() {
+/* ---------- ФИЛИАЛЫ ---------- */
+async function renderBranches() {
+  document.getElementById('tab').innerHTML = 'Загружаем…';
+  try { await loadCrmCore(); } catch(e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`; return;
+  }
   document.getElementById('tab').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h1>Филиалы (${crm.branches.length})</h1>
-      <button class="btn" onclick="openBranchForm()">Добавить филиал</button>
+      <h1>Филиалы</h1>
+      <button class="btn" onclick="openBranchForm()">+ Добавить филиал</button>
     </div>
     <table class="table">
       <thead><tr><th>Название</th><th>Адрес</th><th></th></tr></thead>
       <tbody>
-        ${crm.branches.length ? crm.branches.map(b => `
+        ${crmCache.branches.length ? crmCache.branches.map(b => `
           <tr>
             <td><b>${escapeHtml(b.name)}</b></td>
             <td>${escapeHtml(b.address||'—')}</td>
             <td>
               <button class="btn btn-ghost" onclick="openBranchForm('${b.id}')">✏️</button>
-              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteBranch('${b.id}')">🗑</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeBranch('${b.id}')">🗑</button>
             </td>
           </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:24px">Филиалов нет</td></tr>'}
       </tbody>
     </table>`;
-});
+}
 
 function openBranchForm(id) {
-  const b = id ? crm.branches.find(x=>x.id===id) : {};
+  const b = id ? crmCache.branches.find(x => x.id === id) : {};
   document.getElementById('modalContent').innerHTML = `
-    <h2>${id ? 'Редактировать' : 'Добавить'} филиал</h2>
-    <div class="form-group"><label>Название</label><input class="form-input" id="b_name" value="${escapeHtml(b.name||'')}"></div>
-    <div class="form-group"><label>Адрес</label><input class="form-input" id="b_addr" value="${escapeHtml(b.address||'')}"></div>
+    <h2>${id ? 'Изменить' : 'Добавить'} филиал</h2>
+    <div class="form-group"><label>Название</label><input class="form-input" id="br_name" value="${escapeHtml(b.name||'')}"></div>
+    <div class="form-group"><label>Адрес</label><input class="form-input" id="br_addr" value="${escapeHtml(b.address||'')}"></div>
     <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="btn" onclick="saveBranch('${id||''}')">Сохранить</button>
@@ -983,60 +966,63 @@ function openBranchForm(id) {
 }
 
 async function saveBranch(id) {
-  const body = { name: document.getElementById('b_name').value.trim(), address: document.getElementById('b_addr').value.trim() };
+  const body = { name: document.getElementById('br_name').value.trim(), address: document.getElementById('br_addr').value.trim() || null };
   const err = document.getElementById('modalErr');
   if (!body.name) { err.textContent = 'Введите название'; return; }
   try {
-    if (id) await API._request('PUT',`/api/branches/${id}`,body);
-    else    await API._request('POST','/api/branches',body);
-    closeModal(); renderBranches(); showToast('Сохранено','success');
+    if (id) await API._request('PUT', `/api/branches/${id}`, body);
+    else    await API._request('POST', '/api/branches', body);
+    closeModal(); await renderBranches(); showToast('Сохранено','success');
   } catch(e) { err.textContent = e.message; }
 }
 
-async function deleteBranch(id) {
+async function removeBranch(id) {
   if (!confirm('Удалить филиал?')) return;
-  try { await API._request('DELETE',`/api/branches/${id}`); renderBranches(); }
+  try { await API._request('DELETE', `/api/branches/${id}`); await renderBranches(); showToast('Удалено','success'); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-// ─── TARIFFS ──────────────────────────────────────────────
-const renderTariffs = crmWrap(function() {
+/* ---------- ТАРИФЫ ---------- */
+async function renderTariffs() {
+  document.getElementById('tab').innerHTML = 'Загружаем…';
+  try { await loadCrmCore(); } catch(e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">${escapeHtml(e.message)}</div>`; return;
+  }
   document.getElementById('tab').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h1>Тарифы / Абонементы (${crm.tariffs.length})</h1>
-      <button class="btn" onclick="openTariffForm()">Добавить тариф</button>
+      <h1>Тарифы (абонементы)</h1>
+      <button class="btn" onclick="openTariffForm()">+ Добавить тариф</button>
     </div>
     <table class="table">
-      <thead><tr><th>Название</th><th>Занятий</th><th>Срок (дн.)</th><th>Цена</th><th>Доп. урок отдельно</th><th></th></tr></thead>
+      <thead><tr><th>Название</th><th>Занятий</th><th>Срок (дней)</th><th>Цена</th><th>Доп.отдельно</th><th></th></tr></thead>
       <tbody>
-        ${crm.tariffs.length ? crm.tariffs.map(t => `
+        ${crmCache.tariffs.length ? crmCache.tariffs.map(t => `
           <tr>
             <td><b>${escapeHtml(t.name)}</b></td>
             <td>${t.visitsCount}</td>
             <td>${t.durationDays}</td>
-            <td>${t.price ? t.price.toLocaleString('ru') + ' ₸' : '—'}</td>
-            <td>${t.extraLessonsSeparate ? '<span class="badge">Да</span>' : 'Нет'}</td>
+            <td>${t.price ? t.price+' ₽' : '—'}</td>
+            <td>${t.extraLessonsSeparate ? '✅' : '—'}</td>
             <td>
               <button class="btn btn-ghost" onclick="openTariffForm('${t.id}')">✏️</button>
-              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteTariff('${t.id}')">🗑</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeTariff('${t.id}')">🗑</button>
             </td>
           </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px">Тарифов нет</td></tr>'}
       </tbody>
     </table>`;
-});
+}
 
 function openTariffForm(id) {
-  const t = id ? crm.tariffs.find(x=>x.id===id) : {};
+  const t = id ? crmCache.tariffs.find(x => x.id === id) : {};
   document.getElementById('modalContent').innerHTML = `
-    <h2>${id ? 'Редактировать' : 'Добавить'} тариф</h2>
-    <div class="form-group"><label>Название</label><input class="form-input" id="t_name" value="${escapeHtml(t.name||'')}"></div>
-    <div class="form-group"><label>Кол-во занятий</label><input class="form-input" id="t_visits" type="number" min="1" value="${t.visitsCount||8}"></div>
-    <div class="form-group"><label>Срок действия (дней)</label><input class="form-input" id="t_days" type="number" min="1" value="${t.durationDays||30}"></div>
-    <div class="form-group"><label>Цена (₸)</label><input class="form-input" id="t_price" type="number" min="0" value="${t.price||0}"></div>
-    <div class="form-group" style="display:flex;align-items:center;gap:10px">
-      <input type="checkbox" id="t_extra" ${t.extraLessonsSeparate?'checked':''}>
-      <label for="t_extra" style="margin:0">Доп. урок списывается отдельно</label>
+    <h2>${id ? 'Изменить' : 'Добавить'} тариф</h2>
+    <div class="form-group"><label>Название</label><input class="form-input" id="tr_name" value="${escapeHtml(t.name||'')}"></div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1"><label>Кол-во занятий</label><input type="number" class="form-input" id="tr_visits" value="${t.visitsCount||8}"></div>
+      <div class="form-group" style="flex:1"><label>Срок (дней)</label><input type="number" class="form-input" id="tr_days" value="${t.durationDays||30}"></div>
     </div>
+    <div class="form-group"><label>Цена (₽)</label><input type="number" class="form-input" id="tr_price" value="${t.price||0}"></div>
+    <div class="form-group"><label><input type="checkbox" id="tr_extra" ${t.extraLessonsSeparate?'checked':''}> Дополнительные занятия учитываются отдельно</label></div>
     <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="btn" onclick="saveTariff('${id||''}')">Сохранить</button>
@@ -1047,94 +1033,117 @@ function openTariffForm(id) {
 
 async function saveTariff(id) {
   const body = {
-    name: document.getElementById('t_name').value.trim(),
-    visitsCount: parseInt(document.getElementById('t_visits').value),
-    durationDays: parseInt(document.getElementById('t_days').value),
-    price: parseInt(document.getElementById('t_price').value)||0,
-    extraLessonsSeparate: document.getElementById('t_extra').checked,
+    name: document.getElementById('tr_name').value.trim(),
+    visitsCount: Number(document.getElementById('tr_visits').value),
+    durationDays: Number(document.getElementById('tr_days').value),
+    price: Number(document.getElementById('tr_price').value) || 0,
+    extraLessonsSeparate: document.getElementById('tr_extra').checked,
   };
   const err = document.getElementById('modalErr');
-  if (!body.name || !body.visitsCount || !body.durationDays) { err.textContent = 'Заполните обязательные поля'; return; }
+  if (!body.name || !body.visitsCount || !body.durationDays) { err.textContent = 'Заполните все поля'; return; }
   try {
-    if (id) await API._request('PUT',`/api/tariffs/${id}`,body);
-    else    await API._request('POST','/api/tariffs',body);
-    closeModal(); renderTariffs(); showToast('Сохранено','success');
+    if (id) await API._request('PUT', `/api/tariffs/${id}`, body);
+    else    await API._request('POST', '/api/tariffs', body);
+    closeModal(); await renderTariffs(); showToast('Сохранено','success');
   } catch(e) { err.textContent = e.message; }
 }
 
-async function deleteTariff(id) {
+async function removeTariff(id) {
   if (!confirm('Удалить тариф?')) return;
-  try { await API._request('DELETE',`/api/tariffs/${id}`); renderTariffs(); }
+  try { await API._request('DELETE', `/api/tariffs/${id}`); await renderTariffs(); showToast('Удалено','success'); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-// ─── GROUPS ───────────────────────────────────────────────
-let currentGroupId = null;
-let groupSchedule = [];
-let groupMembers = [];
+/* ---------- ГРУППЫ (с подвкладками расписания и состава) ---------- */
+let groupsFilter = { branch:'', teacher:'', status:'' };
+let expandedGroupId = null;
 
-const renderGroups = crmWrap(async function() {
-  const filterBranch = document.getElementById('grp_filter_branch')?.value || '';
-  const filtered = filterBranch ? crm.groups.filter(g=>g.branchId===filterBranch) : crm.groups;
-  const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+async function renderGroups() {
+  document.getElementById('tab').innerHTML = 'Загружаем…';
+  try { await loadCrmCore(); } catch(e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">${escapeHtml(e.message)}</div>`; return;
+  }
+  let list = crmCache.groups.slice();
+  if (groupsFilter.branch)  list = list.filter(g => g.branchId === groupsFilter.branch);
+  if (groupsFilter.teacher) list = list.filter(g => g.teacherId === groupsFilter.teacher || g.assistantId === groupsFilter.teacher);
+  if (groupsFilter.status)  list = list.filter(g => g.status === groupsFilter.status);
+
+  const teachers = cache.users.filter(u => u.role==='teacher' || u.role==='admin');
   document.getElementById('tab').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h1>Группы (${crm.groups.length})</h1>
-      <button class="btn" onclick="openGroupForm()">Создать группу</button>
+      <h1>Группы</h1>
+      <button class="btn" onclick="openGroupForm()">+ Добавить группу</button>
     </div>
-    <div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">
-      <label>Филиал:</label>
-      <select class="form-input" id="grp_filter_branch" style="max-width:220px" onchange="renderGroups()">
-        <option value="">Все</option>
-        ${crm.branches.map(b=>`<option value="${b.id}" ${b.id===filterBranch?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select class="form-input" style="flex:1;min-width:160px" id="gf_branch" onchange="groupsFilter.branch=this.value;renderGroups()">
+        <option value="">Все филиалы</option>
+        ${crmCache.branches.map(b => `<option value="${b.id}" ${groupsFilter.branch===b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+      </select>
+      <select class="form-input" style="flex:1;min-width:160px" id="gf_teacher" onchange="groupsFilter.teacher=this.value;renderGroups()">
+        <option value="">Все учителя</option>
+        ${teachers.map(t => `<option value="${t.id}" ${groupsFilter.teacher===t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('')}
+      </select>
+      <select class="form-input" style="flex:1;min-width:160px" id="gf_status" onchange="groupsFilter.status=this.value;renderGroups()">
+        <option value="">Все статусы</option>
+        <option value="active"   ${groupsFilter.status==='active'?'selected':''}>Активные</option>
+        <option value="archived" ${groupsFilter.status==='archived'?'selected':''}>В архиве</option>
       </select>
     </div>
     <table class="table">
-      <thead><tr><th>Название</th><th>Тип</th><th>Филиал</th><th>Учитель</th><th>Статус</th><th>Расписание</th><th></th></tr></thead>
+      <thead><tr><th>Название</th><th>Филиал</th><th>Учитель</th><th>Тип</th><th>Статус</th><th></th></tr></thead>
       <tbody>
-        ${filtered.length ? filtered.map(g => {
-          const branch = crm.branches.find(b=>b.id===g.branchId);
-          const teacher = cache.users.find(u=>u.id===g.teacherId);
+        ${list.length ? list.map(g => {
+          const branch = crmCache.branches.find(b => b.id === g.branchId);
+          const teacher = cache.users.find(u => u.id === g.teacherId);
+          const assistant = g.assistantId ? cache.users.find(u => u.id === g.assistantId) : null;
           return `<tr>
             <td><b>${escapeHtml(g.name)}</b></td>
-            <td><span class="badge ${g.lessonKind==='main'?'':'badge-warning'}">${g.lessonKind==='main'?'Основная':'Доп.'}</span></td>
-            <td>${branch?escapeHtml(branch.name):'—'}</td>
-            <td>${teacher?escapeHtml(teacher.name):'—'}</td>
-            <td><span class="badge ${g.status==='active'?'badge-success':'badge-danger'}">${g.status==='active'?'Активна':'Архив'}</span></td>
-            <td><button class="btn btn-ghost" onclick="openGroupDetail('${g.id}')">📅 Расписание</button></td>
+            <td>${branch ? escapeHtml(branch.name) : '—'}</td>
+            <td>${teacher ? escapeHtml(teacher.name) : '—'}${assistant ? ` <span style="color:#64748b">+ ${escapeHtml(assistant.name)}</span>` : ''}</td>
+            <td>${g.lessonKind==='main' ? '🎯 Осн.' : '➕ Доп.'}</td>
+            <td><span class="badge ${g.status==='active'?'badge-success':'badge-warning'}">${g.status}</span></td>
             <td>
+              <button class="btn btn-ghost" onclick="openGroupDetails('${g.id}')">📅 Детали</button>
               <button class="btn btn-ghost" onclick="openGroupForm('${g.id}')">✏️</button>
-              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteGroup('${g.id}')">🗑</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeGroup('${g.id}')">🗑</button>
             </td>
           </tr>`;
-        }).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px">Групп нет</td></tr>'}
+        }).join('') : '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px">Групп нет</td></tr>'}
       </tbody>
     </table>`;
-});
+}
 
 function openGroupForm(id) {
-  const g = id ? crm.groups.find(x=>x.id===id) : { status:'active', lessonKind:'main' };
-  const branchOpts = crm.branches.map(b=>`<option value="${b.id}" ${g.branchId===b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
-  const teacherOpts = cache.users.filter(u=>u.role==='teacher'||u.role==='assistant').map(u=>`<option value="${u.id}" ${g.teacherId===u.id?'selected':''}>${escapeHtml(u.name)}</option>`).join('');
-  const courseOpts = cache.modules.map(m=>`<option value="${m.id}" ${g.courseId===m.id?'selected':''}>${escapeHtml(m.title)}</option>`).join('');
+  const g = id ? crmCache.groups.find(x => x.id === id) : {};
+  const branchOpts = crmCache.branches.map(b =>
+    `<option value="${b.id}" ${(g.branchId||'')===b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
+  const teachers = cache.users.filter(u => u.role==='teacher' || u.role==='admin');
+  const teacherOpts = teachers.map(t =>
+    `<option value="${t.id}" ${(g.teacherId||'')===t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('');
+  const assistantOpts = teachers.map(t =>
+    `<option value="${t.id}" ${(g.assistantId||'')===t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('');
+  const courseOpts = cache.modules.map(m =>
+    `<option value="${m.id}" ${(g.courseId||'')===m.id?'selected':''}>${escapeHtml(m.title)}</option>`).join('');
   document.getElementById('modalContent').innerHTML = `
-    <h2>${id ? 'Редактировать' : 'Создать'} группу</h2>
+    <h2>${id ? 'Изменить' : 'Добавить'} группу</h2>
     <div class="form-group"><label>Название</label><input class="form-input" id="g_name" value="${escapeHtml(g.name||'')}"></div>
+    <div class="form-group"><label>Курс / направление</label><select class="form-input" id="g_course"><option value="">—</option>${courseOpts}</select></div>
     <div class="form-group"><label>Филиал</label><select class="form-input" id="g_branch"><option value="">—</option>${branchOpts}</select></div>
-    <div class="form-group"><label>Учитель</label><select class="form-input" id="g_teacher"><option value="">—</option>${teacherOpts}</select></div>
-    <div class="form-group"><label>Ассистент (необяз.)</label><select class="form-input" id="g_assistant"><option value="">—</option>${teacherOpts}</select></div>
-    <div class="form-group"><label>Курс (необяз.)</label><select class="form-input" id="g_course"><option value="">—</option>${courseOpts}</select></div>
-    <div class="form-group"><label>Тип урока</label>
-      <select class="form-input" id="g_kind">
-        <option value="main" ${g.lessonKind==='main'?'selected':''}>Основной</option>
-        <option value="extra" ${g.lessonKind==='extra'?'selected':''}>Дополнительный</option>
-      </select>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1"><label>Учитель</label><select class="form-input" id="g_teacher"><option value="">—</option>${teacherOpts}</select></div>
+      <div class="form-group" style="flex:1"><label>Ассистент</label><select class="form-input" id="g_assist"><option value="">—</option>${assistantOpts}</select></div>
     </div>
-    <div class="form-group"><label>Статус</label>
-      <select class="form-input" id="g_status">
-        <option value="active" ${g.status==='active'?'selected':''}>Активна</option>
-        <option value="archived" ${g.status==='archived'?'selected':''}>Архив</option>
-      </select>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1"><label>Тип занятий</label>
+        <select class="form-input" id="g_kind">
+          <option value="main"  ${(g.lessonKind||'main')==='main'?'selected':''}>🎯 Основные</option>
+          <option value="extra" ${g.lessonKind==='extra'?'selected':''}>➕ Дополнительные</option>
+        </select></div>
+      <div class="form-group" style="flex:1"><label>Статус</label>
+        <select class="form-input" id="g_status">
+          <option value="active"   ${(g.status||'active')==='active'?'selected':''}>Активна</option>
+          <option value="archived" ${g.status==='archived'?'selected':''}>В архиве</option>
+        </select></div>
     </div>
     <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
     <div style="display:flex;gap:10px;margin-top:16px">
@@ -1147,217 +1156,238 @@ function openGroupForm(id) {
 async function saveGroup(id) {
   const body = {
     name: document.getElementById('g_name').value.trim(),
+    courseId: document.getElementById('g_course').value || null,
     branchId: document.getElementById('g_branch').value,
     teacherId: document.getElementById('g_teacher').value,
-    assistantId: document.getElementById('g_assistant').value || null,
-    courseId: document.getElementById('g_course').value || null,
+    assistantId: document.getElementById('g_assist').value || null,
     lessonKind: document.getElementById('g_kind').value,
     status: document.getElementById('g_status').value,
   };
   const err = document.getElementById('modalErr');
-  if (!body.name || !body.branchId || !body.teacherId) { err.textContent = 'Заполните обязательные поля'; return; }
+  if (!body.name || !body.branchId || !body.teacherId) { err.textContent = 'Название, филиал и учитель обязательны'; return; }
   try {
-    if (id) await API._request('PUT',`/api/groups/${id}`,body);
-    else    await API._request('POST','/api/groups',body);
-    closeModal(); renderGroups(); showToast('Сохранено','success');
+    if (id) await API._request('PUT', `/api/groups/${id}`, body);
+    else    await API._request('POST', '/api/groups', body);
+    closeModal(); await renderGroups(); showToast('Сохранено','success');
   } catch(e) { err.textContent = e.message; }
 }
 
-async function deleteGroup(id) {
-  if (!confirm('Удалить группу?')) return;
-  try { await API._request('DELETE',`/api/groups/${id}`); renderGroups(); }
+async function removeGroup(id) {
+  if (!confirm('Удалить группу? Расписание и состав будут удалены.')) return;
+  try { await API._request('DELETE', `/api/groups/${id}`); await renderGroups(); showToast('Удалено','success'); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-async function openGroupDetail(groupId) {
-  currentGroupId = groupId;
-  const g = crm.groups.find(x=>x.id===groupId);
-  const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+/* Детали группы — расписание + состав */
+async function openGroupDetails(gid) {
+  const g = crmCache.groups.find(x => x.id === gid);
+  if (!g) return;
+  document.getElementById('modalContent').innerHTML = '<h2>Загружаем…</h2>';
+  document.getElementById('modal').classList.add('active');
   let schedule = [], members = [];
   try {
     [schedule, members] = await Promise.all([
-      API._request('GET',`/api/groups/${groupId}/schedule`),
-      API._request('GET',`/api/groups/${groupId}/members`),
+      API._request('GET', `/api/groups/${gid}/schedule`),
+      API._request('GET', `/api/groups/${gid}/members`),
     ]);
-  } catch(e) { showToast(e.message,'error'); return; }
-  groupSchedule = schedule;
-  groupMembers = members;
+  } catch(e) { document.getElementById('modalContent').innerHTML = `<h2>Ошибка: ${escapeHtml(e.message)}</h2><button class="btn btn-outline" onclick="closeModal()">Закрыть</button>`; return; }
 
-  const studentOpts = cache.users.filter(u=>u.role==='student').map(u=>`<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
+  const memberRows = members.map(m => {
+    const u = cache.users.find(x => x.id === m.studentId);
+    return `<tr>
+      <td>${u ? escapeHtml(u.name) : m.studentId}</td>
+      <td>${new Date(m.since).toLocaleDateString('ru')}</td>
+      <td>${m.until ? new Date(m.until).toLocaleDateString('ru') : '—'}</td>
+      <td><button class="btn btn-ghost" style="color:#ef4444" onclick="removeMember('${gid}','${m.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
 
+  const scheduleRows = schedule.map(s => `<tr>
+    <td>${WEEKDAYS[s.weekday]}</td>
+    <td>${escapeHtml(s.startTime)}</td>
+    <td>${s.durationMin} мин</td>
+    <td><button class="btn btn-ghost" style="color:#ef4444" onclick="removeSchedule('${gid}','${s.id}')">🗑</button></td>
+  </tr>`).join('');
+
+  const students = cache.users.filter(u => u.role==='student');
   document.getElementById('modalContent').innerHTML = `
-    <h2>Группа: ${escapeHtml(g.name)}</h2>
-    <div style="display:flex;gap:20px;flex-wrap:wrap">
-      <div style="flex:1;min-width:260px">
-        <h3 style="margin:0 0 10px">📅 Расписание</h3>
-        <table class="table" style="margin-bottom:12px">
-          <thead><tr><th>День</th><th>Время</th><th>Длит. (мин)</th><th></th></tr></thead>
-          <tbody>
-            ${schedule.length ? schedule.map(s=>`
-              <tr>
-                <td>${DAYS[s.weekday]}</td>
-                <td>${s.startTime}</td>
-                <td>${s.durationMin}</td>
-                <td><button class="btn btn-ghost" style="color:#ef4444" onclick="deleteSchedule('${s.id}','${groupId}')">🗑</button></td>
-              </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#64748b">Нет слотов</td></tr>'}
-          </tbody>
-        </table>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <select class="form-input" id="sch_day" style="width:70px">
-            ${DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}
-          </select>
-          <input class="form-input" type="time" id="sch_time" value="10:00" style="width:100px">
-          <input class="form-input" type="number" id="sch_dur" value="90" min="30" style="width:75px" placeholder="мин">
-          <button class="btn" onclick="addSchedule('${groupId}')">+ Добавить</button>
-        </div>
-      </div>
-      <div style="flex:1;min-width:260px">
-        <h3 style="margin:0 0 10px">👤 Состав</h3>
-        <table class="table" style="margin-bottom:12px">
-          <thead><tr><th>Ученик</th><th>С</th><th></th></tr></thead>
-          <tbody>
-            ${members.length ? members.map(m=>`
-              <tr>
-                <td>${escapeHtml(m.studentName||m.studentId)}</td>
-                <td>${new Date(m.since).toLocaleDateString('ru')}</td>
-                <td><button class="btn btn-ghost" style="color:#ef4444" onclick="removeMember('${m.id}','${groupId}')">🗑</button></td>
-              </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:#64748b">Пусто</td></tr>'}
-          </tbody>
-        </table>
-        <div style="display:flex;gap:8px">
-          <select class="form-input" id="mbr_student"><option value="">— Ученик —</option>${studentOpts}</select>
-          <button class="btn" onclick="addMember('${groupId}')">+ Добавить</button>
-        </div>
-      </div>
+    <h2>${escapeHtml(g.name)}</h2>
+    <p style="color:#64748b;margin-top:-6px">Расписание и состав группы</p>
+
+    <h3 style="margin-top:14px">📅 Расписание</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+      <select class="form-input" id="s_wd" style="flex:1;min-width:90px">
+        ${WEEKDAYS.map((d,i) => `<option value="${i}" ${i===1?'selected':''}>${d}</option>`).join('')}
+      </select>
+      <input class="form-input" id="s_time" type="time" value="15:00" style="flex:1;min-width:90px">
+      <input class="form-input" id="s_dur" type="number" value="60" min="15" max="240" style="flex:1;min-width:80px">
+      <button class="btn" onclick="addSchedule('${gid}')">+ Добавить</button>
     </div>
-    <div style="margin-top:16px;text-align:right">
-      <button class="btn btn-outline" onclick="closeModal()">Закрыть</button>
-    </div>`;
-  document.getElementById('modal').classList.add('active');
+    <table class="table" style="margin-bottom:18px">
+      <thead><tr><th>День</th><th>Время</th><th>Длительность</th><th></th></tr></thead>
+      <tbody>${scheduleRows || '<tr><td colspan="4" style="text-align:center;color:#64748b">Расписание не задано</td></tr>'}</tbody>
+    </table>
+
+    <h3>👥 Состав группы</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <select class="form-input" id="m_student" style="flex:1">
+        <option value="">— выберите ученика —</option>
+        ${students.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="addMember('${gid}')">+ Добавить</button>
+    </div>
+    <table class="table">
+      <thead><tr><th>Ученик</th><th>С</th><th>По</th><th></th></tr></thead>
+      <tbody>${memberRows || '<tr><td colspan="4" style="text-align:center;color:#64748b">Учеников нет</td></tr>'}</tbody>
+    </table>
+
+    <div style="margin-top:16px;text-align:right"><button class="btn btn-outline" onclick="closeModal()">Закрыть</button></div>`;
 }
 
-async function addSchedule(groupId) {
+async function addSchedule(gid) {
   const body = {
-    weekday: parseInt(document.getElementById('sch_day').value),
-    startTime: document.getElementById('sch_time').value,
-    durationMin: parseInt(document.getElementById('sch_dur').value)||90,
+    weekday: Number(document.getElementById('s_wd').value),
+    startTime: document.getElementById('s_time').value,
+    durationMin: Number(document.getElementById('s_dur').value),
   };
-  try { await API._request('POST',`/api/groups/${groupId}/schedule`,body); await openGroupDetail(groupId); }
+  try { await API._request('POST', `/api/groups/${gid}/schedule`, body); openGroupDetails(gid); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-async function deleteSchedule(id, groupId) {
-  try { await API._request('DELETE',`/api/groups/${groupId}/schedule/${id}`); await openGroupDetail(groupId); }
+async function removeSchedule(gid, sid) {
+  if (!confirm('Удалить слот расписания?')) return;
+  try { await API._request('DELETE', `/api/groups/${gid}/schedule/${sid}`); openGroupDetails(gid); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-async function addMember(groupId) {
-  const studentId = document.getElementById('mbr_student').value;
+async function addMember(gid) {
+  const studentId = document.getElementById('m_student').value;
   if (!studentId) { showToast('Выберите ученика','error'); return; }
-  try { await API._request('POST',`/api/groups/${groupId}/members`,{studentId}); await openGroupDetail(groupId); }
+  try { await API._request('POST', `/api/groups/${gid}/members`, { studentId, since: Date.now() }); openGroupDetails(gid); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-async function removeMember(id, groupId) {
-  try { await API._request('DELETE',`/api/groups/${groupId}/members/${id}`); await openGroupDetail(groupId); }
+async function removeMember(gid, mid) {
+  if (!confirm('Убрать ученика из группы?')) return;
+  try { await API._request('DELETE', `/api/groups/${gid}/members/${mid}`); openGroupDetails(gid); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-// ─── CLIENTS ──────────────────────────────────────────────
-const renderClients = crmWrap(function() {
-  const filterStatus = document.getElementById('cli_filter_status')?.value || '';
-  const filterBranch = document.getElementById('cli_filter_branch')?.value || '';
-  let list = crm.clients;
-  if (filterStatus) list = list.filter(c=>c.status===filterStatus);
-  if (filterBranch) list = list.filter(c=>c.branchId===filterBranch);
+/* ---------- КЛИЕНТЫ (карточки CRM) ---------- */
+let clientsFilter = { branch:'', group:'', status:'', manager:'' };
 
+async function renderClients() {
+  document.getElementById('tab').innerHTML = 'Загружаем…';
+  try {
+    await loadCrmCore();
+    const qs = new URLSearchParams();
+    if (clientsFilter.branch)  qs.set('branch', clientsFilter.branch);
+    if (clientsFilter.group)   qs.set('group', clientsFilter.group);
+    if (clientsFilter.status)  qs.set('status', clientsFilter.status);
+    if (clientsFilter.manager) qs.set('manager', clientsFilter.manager);
+    const url = '/api/students-crm' + (qs.toString() ? '?' + qs.toString() : '');
+    crmCache.clients = await API._request('GET', url);
+  } catch(e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">${escapeHtml(e.message)}</div>`; return;
+  }
+  const managers = cache.users.filter(u => u.role==='admin' || u.role==='teacher');
   document.getElementById('tab').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h1>Клиенты / Ученики CRM (${list.length})</h1>
-      <button class="btn" onclick="openClientForm()">Добавить карточку</button>
+      <h1>Клиенты (CRM)</h1>
+      <button class="btn" onclick="openClientForm()">+ Завести карточку</button>
     </div>
-    <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap">
-      <select class="form-input" id="cli_filter_status" style="max-width:180px" onchange="renderClients()">
-        <option value="">Все статусы</option>
-        <option value="active" ${filterStatus==='active'?'selected':''}>Активный</option>
-        <option value="frozen" ${filterStatus==='frozen'?'selected':''}>Заморожен</option>
-        <option value="inactive" ${filterStatus==='inactive'?'selected':''}>Неактивный</option>
-      </select>
-      <select class="form-input" id="cli_filter_branch" style="max-width:220px" onchange="renderClients()">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select class="form-input" style="flex:1;min-width:140px" onchange="clientsFilter.branch=this.value;renderClients()">
         <option value="">Все филиалы</option>
-        ${crm.branches.map(b=>`<option value="${b.id}" ${b.id===filterBranch?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+        ${crmCache.branches.map(b => `<option value="${b.id}" ${clientsFilter.branch===b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+      </select>
+      <select class="form-input" style="flex:1;min-width:140px" onchange="clientsFilter.group=this.value;renderClients()">
+        <option value="">Все группы</option>
+        ${crmCache.groups.map(g => `<option value="${g.id}" ${clientsFilter.group===g.id?'selected':''}>${escapeHtml(g.name)}</option>`).join('')}
+      </select>
+      <select class="form-input" style="flex:1;min-width:140px" onchange="clientsFilter.status=this.value;renderClients()">
+        <option value="">Все статусы</option>
+        <option value="active"   ${clientsFilter.status==='active'?'selected':''}>Активный</option>
+        <option value="frozen"   ${clientsFilter.status==='frozen'?'selected':''}>Заморожен</option>
+        <option value="inactive" ${clientsFilter.status==='inactive'?'selected':''}>Неактивен</option>
+      </select>
+      <select class="form-input" style="flex:1;min-width:140px" onchange="clientsFilter.manager=this.value;renderClients()">
+        <option value="">Все менеджеры</option>
+        ${managers.map(m => `<option value="${m.id}" ${clientsFilter.manager===m.id?'selected':''}>${escapeHtml(m.name)}</option>`).join('')}
       </select>
     </div>
     <table class="table">
-      <thead><tr><th>Имя</th><th>Статус</th><th>Остаток занятий</th><th>Тариф</th><th>Филиал</th><th>Согл. видео</th><th></th></tr></thead>
+      <thead><tr><th>ФИО</th><th>Филиал</th><th>Тариф</th><th>Остаток</th><th>Статус</th><th>Видео</th><th></th></tr></thead>
       <tbody>
-        ${list.length ? list.map(c => {
-          const tariff = crm.tariffs.find(t=>t.id===c.tariffId);
-          const branch = crm.branches.find(b=>b.id===c.branchId);
-          const statusBadge = {active:'badge-success',frozen:'badge-warning',inactive:'badge-danger'}[c.status]||'';
-          const statusLabel = {active:'Активный',frozen:'Заморожен',inactive:'Неактивный'}[c.status]||c.status;
-          const visitsColor = c.visitsLeft <= 2 ? 'color:#ef4444;font-weight:700' : '';
+        ${crmCache.clients.length ? crmCache.clients.map(c => {
+          const branch = crmCache.branches.find(b => b.id === c.branchId);
+          const tariff = crmCache.tariffs.find(t => t.id === c.tariffId);
           return `<tr>
             <td><b>${escapeHtml(c.fullName)}</b></td>
-            <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-            <td><span style="${visitsColor}">${c.visitsLeft}</span></td>
-            <td>${tariff?escapeHtml(tariff.name):'—'}</td>
-            <td>${branch?escapeHtml(branch.name):'—'}</td>
-            <td>${c.videoConsent ? '✅' : '❌'}</td>
+            <td>${branch ? escapeHtml(branch.name) : '—'}</td>
+            <td>${tariff ? escapeHtml(tariff.name) : '—'}</td>
+            <td>${c.visitsLeft != null ? c.visitsLeft : '—'}</td>
+            <td><span class="badge ${c.status==='active'?'badge-success':c.status==='frozen'?'badge-warning':'badge-danger'}">${c.status}</span></td>
+            <td>${c.videoConsent ? '🎥' : '—'}</td>
             <td>
               <button class="btn btn-ghost" onclick="openClientForm('${c.userId}')">✏️</button>
-              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteClient('${c.userId}')">🗑</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeClient('${c.userId}')">🗑</button>
             </td>
           </tr>`;
-        }).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px">Клиентов нет</td></tr>'}
+        }).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px">Карточек нет</td></tr>'}
       </tbody>
     </table>`;
-});
+}
 
 function openClientForm(userId) {
-  const c = userId ? crm.clients.find(x=>x.userId===userId) : {};
-  const studentOpts = cache.users.filter(u=>u.role==='student').map(u=>`<option value="${u.id}" ${(c.userId||'')=== u.id?'selected':''}>${escapeHtml(u.name)} (${u.login})</option>`).join('');
-  const branchOpts = crm.branches.map(b=>`<option value="${b.id}" ${(c.branchId||'')=== b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
-  const tariffOpts = crm.tariffs.map(t=>`<option value="${t.id}" ${(c.tariffId||'')=== t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('');
-  const managerOpts = cache.users.filter(u=>u.role==='admin'||u.role==='teacher').map(u=>`<option value="${u.id}" ${(c.responsibleManagerId||'')=== u.id?'selected':''}>${escapeHtml(u.name)}</option>`).join('');
+  const c = userId ? crmCache.clients.find(x => x.userId === userId) : {};
+  const isEdit = !!userId;
+  const candidateUsers = cache.users.filter(u => u.role === 'student');
+  const userOpts = candidateUsers.map(u =>
+    `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.login)})</option>`).join('');
+  const branchOpts = crmCache.branches.map(b =>
+    `<option value="${b.id}" ${(c.branchId||'')===b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
+  const tariffOpts = crmCache.tariffs.map(t =>
+    `<option value="${t.id}" ${(c.tariffId||'')===t.id?'selected':''}>${escapeHtml(t.name)} (${t.visitsCount}/${t.durationDays}д)</option>`).join('');
+  const managerOpts = cache.users.filter(u => u.role==='admin'||u.role==='teacher').map(m =>
+    `<option value="${m.id}" ${(c.responsibleManagerId||'')===m.id?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+  // его группы (для просмотра)
+  const myMemberships = userId ? [] : []; // simplified — фаза 3 даст историю
+
   document.getElementById('modalContent').innerHTML = `
-    <h2>${userId ? 'Редактировать' : 'Добавить'} карточку клиента</h2>
-    ${!userId ? `<div class="form-group"><label>Аккаунт ученика</label><select class="form-input" id="cli_user"><option value="">—</option>${studentOpts}</select></div>` : `<p style="color:#64748b">Ученик: <b>${escapeHtml(c.fullName||'')}</b></p>`}
-    <div class="form-group"><label>Полное имя</label><input class="form-input" id="cli_name" value="${escapeHtml(c.fullName||'')}"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-group"><label>Дата рождения</label><input class="form-input" type="date" id="cli_bd" value="${c.birthDate||''}"></div>
-      <div class="form-group"><label>Пол</label>
-        <select class="form-input" id="cli_gender">
-          <option value="">—</option>
-          <option value="m" ${c.gender==='m'?'selected':''}>М</option>
-          <option value="f" ${c.gender==='f'?'selected':''}>Ж</option>
-        </select>
-      </div>
+    <h2>${isEdit ? 'Карточка клиента' : 'Новая карточка'}</h2>
+    ${!isEdit ? `<div class="form-group"><label>Пользователь</label><select class="form-input" id="c_user"><option value="">—</option>${userOpts}</select></div>` : ''}
+    <div class="form-group"><label>ФИО полностью</label><input class="form-input" id="c_name" value="${escapeHtml(c.fullName||'')}"></div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1"><label>Дата рождения</label><input type="date" class="form-input" id="c_bd" value="${c.birthDate||''}"></div>
+      <div class="form-group" style="flex:1"><label>Пол</label><select class="form-input" id="c_gender">
+        <option value=""  ${!c.gender?'selected':''}>—</option>
+        <option value="m" ${c.gender==='m'?'selected':''}>М</option>
+        <option value="f" ${c.gender==='f'?'selected':''}>Ж</option>
+      </select></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-group"><label>Филиал</label><select class="form-input" id="cli_branch"><option value="">—</option>${branchOpts}</select></div>
-      <div class="form-group"><label>Тариф</label><select class="form-input" id="cli_tariff"><option value="">—</option>${tariffOpts}</select></div>
+    <div class="form-group"><label>Филиал</label><select class="form-input" id="c_branch"><option value="">—</option>${branchOpts}</select></div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:2"><label>Тариф</label><select class="form-input" id="c_tariff"><option value="">—</option>${tariffOpts}</select></div>
+      <div class="form-group" style="flex:1"><label>Остаток (занятий)</label><input type="number" class="form-input" id="c_left" value="${c.visitsLeft||0}"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-group"><label>Занятий осталось</label><input class="form-input" type="number" id="cli_visits" value="${c.visitsLeft??0}" min="0"></div>
-      <div class="form-group"><label>Статус</label>
-        <select class="form-input" id="cli_status">
-          <option value="active" ${c.status==='active'?'selected':''}>Активный</option>
-          <option value="frozen" ${c.status==='frozen'?'selected':''}>Заморожен</option>
-          <option value="inactive" ${c.status==='inactive'?'selected':''}>Неактивный</option>
-        </select>
-      </div>
+    <div class="form-group"><label>Дата выдачи абонемента</label><input type="date" class="form-input" id="c_subdate" value="${c.subscriptionIssuedAt? new Date(c.subscriptionIssuedAt).toISOString().slice(0,10):''}"></div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1"><label>Статус</label><select class="form-input" id="c_status">
+        <option value="active"   ${(c.status||'active')==='active'?'selected':''}>Активный</option>
+        <option value="frozen"   ${c.status==='frozen'?'selected':''}>Заморожен</option>
+        <option value="inactive" ${c.status==='inactive'?'selected':''}>Неактивен</option>
+      </select></div>
+      <div class="form-group" style="flex:1"><label>Ответственный менеджер</label><select class="form-input" id="c_mgr"><option value="">—</option>${managerOpts}</select></div>
     </div>
-    <div class="form-group"><label>Ответственный менеджер</label><select class="form-input" id="cli_mgr"><option value="">—</option>${managerOpts}</select></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-group"><label>Имя родителя</label><input class="form-input" id="cli_pname" value="${escapeHtml(c.parentName||'')}"></div>
-      <div class="form-group"><label>Телефон родителя</label><input class="form-input" id="cli_pphone" value="${escapeHtml(c.parentPhone||'')}"></div>
+    <h3 style="margin-top:14px;font-size:14px;color:#64748b;text-transform:uppercase;letter-spacing:.06em">Родитель</h3>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1"><label>Имя</label><input class="form-input" id="c_pname" value="${escapeHtml(c.parentName||'')}"></div>
+      <div class="form-group" style="flex:1"><label>Телефон</label><input class="form-input" id="c_pphone" value="${escapeHtml(c.parentPhone||'')}"></div>
     </div>
-    <div class="form-group"><label>Комментарий</label><textarea class="form-input" id="cli_comment" rows="2">${escapeHtml(c.comment||'')}</textarea></div>
-    <div class="form-group" style="display:flex;align-items:center;gap:10px">
-      <input type="checkbox" id="cli_video" ${c.videoConsent?'checked':''}>
-      <label for="cli_video" style="margin:0">Согласие на видеозапись</label>
-    </div>
+    <div class="form-group"><label>Документ (ID/паспорт)</label><input class="form-input" id="c_doc" value="${escapeHtml(c.documentId||'')}"></div>
+    <div class="form-group"><label>Комментарий</label><textarea class="form-input" id="c_comment" rows="2">${escapeHtml(c.comment||'')}</textarea></div>
+    <div class="form-group"><label><input type="checkbox" id="c_video" ${c.videoConsent?'checked':''}> Согласие на видеосъёмку</label></div>
     <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="btn" onclick="saveClient('${userId||''}')">Сохранить</button>
@@ -1367,97 +1397,94 @@ function openClientForm(userId) {
 }
 
 async function saveClient(userId) {
-  const body = {
-    fullName: document.getElementById('cli_name').value.trim(),
-    birthDate: document.getElementById('cli_bd').value || null,
-    gender: document.getElementById('cli_gender').value || null,
-    branchId: document.getElementById('cli_branch').value || null,
-    tariffId: document.getElementById('cli_tariff').value || null,
-    visitsLeft: parseInt(document.getElementById('cli_visits').value)||0,
-    status: document.getElementById('cli_status').value,
-    responsibleManagerId: document.getElementById('cli_mgr').value || null,
-    parentName: document.getElementById('cli_pname').value.trim() || null,
-    parentPhone: document.getElementById('cli_pphone').value.trim() || null,
-    comment: document.getElementById('cli_comment').value.trim() || null,
-    videoConsent: document.getElementById('cli_video').checked,
-    videoConsentDate: document.getElementById('cli_video').checked ? Date.now() : null,
-  };
   const err = document.getElementById('modalErr');
-  if (!body.fullName) { err.textContent = 'Введите имя'; return; }
+  const body = {
+    fullName: document.getElementById('c_name').value.trim(),
+    birthDate: document.getElementById('c_bd').value || null,
+    gender: document.getElementById('c_gender').value || null,
+    branchId: document.getElementById('c_branch').value || null,
+    tariffId: document.getElementById('c_tariff').value || null,
+    visitsLeft: Number(document.getElementById('c_left').value) || 0,
+    subscriptionIssuedAt: document.getElementById('c_subdate').value ? new Date(document.getElementById('c_subdate').value).getTime() : null,
+    status: document.getElementById('c_status').value,
+    responsibleManagerId: document.getElementById('c_mgr').value || null,
+    parentName: document.getElementById('c_pname').value.trim() || null,
+    parentPhone: document.getElementById('c_pphone').value.trim() || null,
+    documentId: document.getElementById('c_doc').value.trim() || null,
+    comment: document.getElementById('c_comment').value.trim() || null,
+    videoConsent: document.getElementById('c_video').checked,
+  };
+  if (body.videoConsent) body.videoConsentDate = Date.now();
+  if (!body.fullName) { err.textContent = 'ФИО обязательно'; return; }
   try {
     if (userId) {
-      await API._request('PUT',`/api/students-crm/${userId}`,body);
+      await API._request('PUT', `/api/students-crm/${userId}`, body);
     } else {
-      body.userId = document.getElementById('cli_user').value;
-      if (!body.userId) { err.textContent = 'Выберите аккаунт ученика'; return; }
-      await API._request('POST','/api/students-crm',body);
+      body.userId = document.getElementById('c_user').value;
+      if (!body.userId) { err.textContent = 'Выберите пользователя'; return; }
+      await API._request('POST', '/api/students-crm', body);
     }
-    closeModal(); renderClients(); showToast('Сохранено','success');
+    closeModal(); await renderClients(); showToast('Сохранено','success');
   } catch(e) { err.textContent = e.message; }
 }
 
-async function deleteClient(userId) {
+async function removeClient(userId) {
   if (!confirm('Удалить карточку клиента?')) return;
-  try { await API._request('DELETE',`/api/students-crm/${userId}`); renderClients(); }
+  try { await API._request('DELETE', `/api/students-crm/${userId}`); await renderClients(); showToast('Удалено','success'); }
   catch(e) { showToast(e.message,'error'); }
 }
 
-// ─── PERMISSIONS ───────────────────────────────────────────
-const renderPermissions = crmWrap(function() {
-  const teachers = cache.users.filter(u=>u.role==='teacher'||u.role==='assistant');
-  document.getElementById('tab').innerHTML = `
-    <h1>Права учителей</h1>
-    <p style="color:#64748b;margin-bottom:20px">Настройте гибкие права доступа для каждого учителя.</p>
-    <table class="table">
-      <thead><tr><th>Учитель</th><th>Роль</th><th>Управление</th></tr></thead>
-      <tbody>
-        ${teachers.length ? teachers.map(u=>`
-          <tr>
-            <td><b>${escapeHtml(u.name)}</b></td>
-            <td><span class="badge">${u.role}</span></td>
-            <td><button class="btn btn-ghost" onclick="openPermissionForm('${u.id}','${escapeHtml(u.name)}')">🔑 Настроить</button></td>
-          </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:24px">Учителей нет</td></tr>'}
-      </tbody>
-    </table>`;
-});
-
+/* ---------- ПРАВА УЧИТЕЛЕЙ ---------- */
 const PERMISSION_KEYS = [
-  { key:'can_edit_materials',    label:'Редактировать материалы' },
-  { key:'can_see_crm',           label:'Видеть CRM-данные учеников' },
-  { key:'can_see_subscriptions', label:'Видеть остатки абонементов' },
-  { key:'can_create_modules',    label:'Создавать модули/задачи' },
-  { key:'can_export',            label:'Экспортировать данные' },
+  { key: 'can_edit_materials',       label: 'Может редактировать материалы (без выдачи доступа)' },
+  { key: 'see_subscription_balance', label: 'Видит остатки абонементов клиентов' },
+  { key: 'see_parent_contacts',      label: 'Видит контакты родителей' },
+  { key: 'can_create_feedback_internal', label: 'Может создавать внутренние отзывы' },
 ];
 
-async function openPermissionForm(teacherId, teacherName) {
-  let perms = {};
+async function renderTeacherPerms() {
+  const teachers = cache.users.filter(u => u.role==='teacher' || u.role==='admin');
+  document.getElementById('tab').innerHTML = `
+    <h1>Права учителей</h1>
+    <p style="color:#64748b;margin-top:6px">Гибкие флаги доступа. Изменения применяются сразу.</p>
+    <div id="permsList" style="margin-top:18px">Загружаем…</div>`;
   try {
-    const rows = await API._request('GET',`/api/teacher-permissions/${teacherId}`);
-    perms = Object.fromEntries(rows.map(r=>[r.key, r.value]));
-  } catch { perms = {}; }
-
-  document.getElementById('modalContent').innerHTML = `
-    <h2>Права: ${escapeHtml(teacherName)}</h2>
-    ${PERMISSION_KEYS.map(p=>`
-      <div class="form-group" style="display:flex;align-items:center;gap:10px">
-        <input type="checkbox" id="perm_${p.key}" ${perms[p.key]?'checked':''}>
-        <label for="perm_${p.key}" style="margin:0">${p.label}</label>
-      </div>`).join('')}
-    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn" onclick="savePermissions('${teacherId}')">Сохранить</button>
-      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
-    </div>`;
-  document.getElementById('modal').classList.add('active');
+    const perms = {};
+    for (const t of teachers) {
+      perms[t.id] = await API._request('GET', `/api/teacher-permissions/${t.id}`).catch(() => ({}));
+    }
+    crmCache.perms = perms;
+    document.getElementById('permsList').innerHTML = teachers.map(t => `
+      <div class="card" style="padding:18px;margin-bottom:12px">
+        <h3 style="margin-bottom:10px">${escapeHtml(t.name)} <span class="badge badge-${t.role==='admin'?'danger':'warning'}">${t.role}</span></h3>
+        <div style="display:flex;flex-wrap:wrap;gap:14px">
+          ${PERMISSION_KEYS.map(p => `
+            <label style="display:flex;align-items:center;gap:8px;min-width:280px">
+              <input type="checkbox" data-teacher="${t.id}" data-key="${p.key}" ${perms[t.id][p.key]?'checked':''} onchange="savePerm(this)">
+              ${escapeHtml(p.label)}
+            </label>`).join('')}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('permsList').innerHTML = `<div class="card" style="padding:18px;color:#ef4444">${escapeHtml(e.message)}</div>`;
+  }
 }
 
-async function savePermissions(teacherId) {
-  const permissions = {};
-  PERMISSION_KEYS.forEach(p => { permissions[p.key] = document.getElementById(`perm_${p.key}`).checked; });
-  const err = document.getElementById('modalErr');
+async function savePerm(input) {
+  const tid = input.dataset.teacher;
+  const key = input.dataset.key;
+  const val = input.checked;
   try {
-    await API._request('PUT',`/api/teacher-permissions/${teacherId}`,{ permissions });
-    closeModal(); showToast('Права сохранены','success');
-  } catch(e) { err.textContent = e.message; }
+    await API._request('PUT', `/api/teacher-permissions/${tid}`, { [key]: val });
+    showToast('Сохранено','success');
+  } catch(e) {
+    input.checked = !val;
+    showToast(e.message,'error');
+  }
 }
+
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+document.getElementById('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
 </script>
+</body>
+</html>

@@ -40,6 +40,12 @@ app.use('/api/auth',     require('./routes-auth'));
 app.use('/api/users',    require('./routes-users'));
 app.use('/api/progress', require('./routes-progress'));
 app.use('/api/lessons',  require('./routes-lessons'));
+// Фаза 1: фидбек, материалы, экспорт/импорт
+app.use('/api/feedback', require('./routes-feedback'));
+app.use('/api',          require('./routes-materials')); // /api/materials, /api/teacher-course-access
+app.use('/api',          require('./routes-export'));    // /api/export/*, /api/import/*
+// Фаза 2: CRM-ядро
+app.use('/api',          require('./routes-crm'));       // /api/branches, /api/tariffs, /api/groups, /api/students-crm, /api/teacher-permissions
 app.use('/api',          require('./routes-content'));  // /api/modules, /api/tasks — в конце
 
 // 404 для неизвестных API-маршрутов

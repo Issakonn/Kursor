@@ -40,13 +40,17 @@ if (user) init();
 async function init() {
   document.getElementById('nav').innerHTML = renderNavbar('teacher');
   try {
-    const [students, tasks, modules, allProgress] = await Promise.all([
+    const [students, tasks, modules, allProgress, myAccess, myMaterials] = await Promise.all([
       API.getStudents(), API.getTasks(), API.getModules(), API.getAllProgress(),
+      API._request('GET', '/api/teacher-course-access').catch(() => []),
+      API._request('GET', '/api/materials').catch(() => []),
     ]);
     state.students = students;
     state.tasks = tasks;
     state.modules = modules;
     state.progressById = Object.fromEntries(allProgress.map(p => [p.userId, p]));
+    state.myAccess = myAccess;
+    state.myMaterials = myMaterials;
     render();
     connectLive();
   } catch (err) {
@@ -68,6 +72,11 @@ function render() {
           · Прогресс учеников обновляется в реальном времени.
         </p>
       </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <button class="btn btn-secondary" onclick="showMaterials()">📚 Материалы курсов</button>
+      <button class="btn btn-secondary" onclick="showFeedbackTeacher()">💬 Мои отзывы</button>
+      <button class="btn btn-secondary" onclick="showMyGroups()">👥 Мои группы</button>
     </div>
     <h2 class="section-title">Все ученики (${students.length})</h2>
     <table class="table" id="studentsTable">
@@ -188,6 +197,224 @@ function updateRow(studentId) {
   void tr.offsetWidth;
   tr.classList.add('row-flash');
 }
+
+/* ===== ФАЗА 1 — Материалы и фидбек у учителя ===== */
+function showMaterials() {
+  const now = Date.now();
+  const { myAccess, myMaterials, modules } = state;
+  const activeAccess = (myAccess||[]).filter(a => a.expiresAt > now);
+  const accessibleCourseIds = activeAccess.map(a => a.courseId);
+
+  if (!accessibleCourseIds.length) {
+    document.getElementById('content').innerHTML += `
+      <div class="card" style="padding:24px;margin-top:20px">
+        <h2 class="section-title">Материалы курсов</h2>
+        <p style="color:#64748b">У вас нет активного доступа ни к одному курсу. Обратитесь к администратору.</p>
+      </div>`;
+    return;
+  }
+
+  const byCourseMaterials = {};
+  accessibleCourseIds.forEach(id => { byCourseMaterials[id] = []; });
+  (myMaterials||[]).forEach(m => {
+    if (byCourseMaterials[m.courseId]) byCourseMaterials[m.courseId].push(m);
+  });
+
+  const typeLabel = {presentation:'📊 Презентация',task:'📝 Задача',text:'📄 Текст',file:'📎 Файл'};
+
+  const html = accessibleCourseIds.map(courseId => {
+    const mod = (modules||[]).find(m => m.id === courseId);
+    const acc = activeAccess.find(a => a.courseId === courseId);
+    const mats = byCourseMaterials[courseId];
+    return `
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="margin:0">${escapeHtml(mod ? mod.title : courseId)}</h3>
+          <span style="font-size:12px;color:#64748b">Доступ до: <b>${new Date(acc.expiresAt).toLocaleDateString('ru')}</b></span>
+        </div>
+        ${mats.length ? `
+          <table class="table">
+            <thead><tr><th>Название</th><th>Тип</th><th>Содержимое</th></tr></thead>
+            <tbody>
+              ${mats.map(m => `<tr>
+                <td><b>${escapeHtml(m.title)}</b></td>
+                <td>${typeLabel[m.type]||m.type}</td>
+                <td style="max-width:300px;word-break:break-all;font-size:13px">${m.content ? escapeHtml(m.content) : '—'}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>` : '<p style="color:#64748b;margin:0">Материалов для этого курса ещё нет</p>'}
+      </div>`;
+  }).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom:16px">
+      <button class="btn btn-outline" onclick="render()">← Назад к ученикам</button>
+    </div>
+    <h1>Материалы курсов</h1>
+    <p style="color:#64748b;margin-bottom:20px">Активных доступов: <b>${activeAccess.length}</b></p>
+    ${html}
+  `;
+}
+
+async function showFeedbackTeacher() {
+  let feedbackList = [];
+  try { feedbackList = await API._request('GET', '/api/feedback'); } catch(e) {}
+  const { students } = state;
+
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <button class="btn btn-outline" onclick="render()">← Назад к ученикам</button>
+      <button class="btn" onclick="openFeedbackFormTeacher()">Написать отзыв</button>
+    </div>
+    <h1>Мои отзывы об учениках</h1>
+    <div id="feedbackListEl">
+      ${feedbackList.length ? feedbackList.map(f => {
+        const student = students.find(s => s.id === f.studentId);
+        const typeLabel = {lesson:'📚 Урок',course:'🎓 Курс',general:'💬 Общий'}[f.type]||f.type;
+        return `<div class="card" style="padding:16px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div><b>${student ? escapeHtml(student.name) : f.studentId}</b> · ${typeLabel}
+              ${f.isInternal ? '<span class="badge badge-warning" style="margin-left:6px">🔒 Внутренний</span>' : ''}
+            </div>
+            <div style="font-size:12px;color:#64748b">${new Date(f.createdAt).toLocaleDateString('ru')}</div>
+          </div>
+          <div>${escapeHtml(f.text)}</div>
+        </div>`;
+      }).join('') : '<div class="card" style="padding:24px;text-align:center;color:#64748b">Отзывов пока нет</div>'}
+    </div>
+  `;
+}
+
+function openFeedbackFormTeacher() {
+  const { students, modules } = state;
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay active';
+  const studentOpts = students.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+  const moduleOpts = modules.map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`).join('');
+  modal.innerHTML = `
+    <div class="modal">
+      <h2>Написать отзыв</h2>
+      <div class="form-group"><label>Ученик</label><select class="form-input" id="tf_student"><option value="">—</option>${studentOpts}</select></div>
+      <div class="form-group"><label>Тип</label>
+        <select class="form-input" id="tf_type">
+          <option value="general">💬 Общий</option>
+          <option value="lesson">📚 По уроку</option>
+          <option value="course">🎓 По курсу</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Курс (необязательно)</label><select class="form-input" id="tf_module"><option value="">—</option>${moduleOpts}</select></div>
+      <div class="form-group"><label>Текст</label><textarea class="form-input" id="tf_text" rows="4"></textarea></div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="tf_internal">
+        <label for="tf_internal" style="margin:0">🔒 Внутренний (не виден родителям)</label>
+      </div>
+      <div id="tf_err" style="color:#ef4444;min-height:18px"></div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn" id="tf_save">Сохранить</button>
+        <button class="btn btn-outline" id="tf_cancel">Отмена</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.querySelector('#tf_cancel').onclick = () => modal.remove();
+  modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  modal.querySelector('#tf_save').onclick = async () => {
+    const body = {
+      studentId:  modal.querySelector('#tf_student').value,
+      type:       modal.querySelector('#tf_type').value,
+      moduleId:   modal.querySelector('#tf_module').value || null,
+      text:       modal.querySelector('#tf_text').value.trim(),
+      isInternal: modal.querySelector('#tf_internal').checked,
+    };
+    const err = modal.querySelector('#tf_err');
+    if (!body.studentId) { err.textContent = 'Выберите ученика'; return; }
+    if (!body.text)       { err.textContent = 'Введите текст'; return; }
+    try {
+      await API._request('POST', '/api/feedback', body);
+      modal.remove();
+      showToast('Отзыв сохранён', 'success');
+      showFeedbackTeacher();
+    } catch(e) { err.textContent = e.message; }
+  };
+}
+
 </script>
 </body>
 </html>
+<script>
+/* ===== ФАЗА 2 — Мои группы у учителя ===== */
+
+async function showMyGroups() {
+  const section = document.getElementById('content');
+  
+  section.innerHTML = '<div style="padding:20px;color:#64748b">Загружаем группы…</div>';
+  
+
+  let groups, branches, tariffs, clients;
+  try {
+    [groups, branches, tariffs] = await Promise.all([
+      API._request('GET', '/api/groups'),
+      API._request('GET', '/api/branches'),
+      API._request('GET', '/api/tariffs'),
+    ]);
+    try { clients = await API._request('GET', '/api/students-crm'); } catch { clients = []; }
+  } catch(e) {
+    section.innerHTML = `<div class="card" style="padding:20px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`;
+    return;
+  }
+
+  const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+  let html = `<h2 class="section-title" style="margin-top:0">Мои группы</h2>`;
+  if (!groups.length) {
+    html += '<div class="card" style="padding:20px;color:#64748b">Вам не назначено ни одной группы.</div>';
+  } else {
+    for (const g of groups) {
+      let schedule = [], members = [];
+      try {
+        [schedule, members] = await Promise.all([
+          API._request('GET', `/api/groups/${g.id}/schedule`),
+          API._request('GET', `/api/groups/${g.id}/members`),
+        ]);
+      } catch {}
+
+      const branch = branches.find(b => b.id === g.branchId);
+      const schedStr = schedule.map(s => `${DAYS[s.weekday]} ${s.startTime} (${s.durationMin} мин)`).join(', ') || 'не задано';
+
+      html += `<div class="card" style="padding:20px;margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+          <div>
+            <h3 style="margin:0 0 4px">${escapeHtml(g.name)}</h3>
+            <div style="color:#64748b;font-size:14px">
+              ${branch ? escapeHtml(branch.name) : ''} ·
+              <span class="badge ${g.lessonKind==='main'?'':'badge-warning'}">${g.lessonKind==='main'?'Основная':'Доп.'}</span> ·
+              <span class="badge ${g.status==='active'?'badge-success':'badge-danger'}">${g.status==='active'?'Активна':'Архив'}</span>
+            </div>
+            <div style="margin-top:6px;font-size:13px;color:#475569">📅 ${schedStr}</div>
+          </div>
+          <span style="font-size:13px;color:#64748b">${members.length} учеников</span>
+        </div>
+        <table class="table" style="margin-top:14px">
+          <thead><tr><th>Ученик</th><th>Статус CRM</th><th>Занятий осталось</th><th>Тариф</th></tr></thead>
+          <tbody>
+            ${members.length ? members.map(m => {
+              const crm = clients.find(c => c.userId === m.studentId);
+              const tariff = crm ? tariffs.find(t => t.id === crm.tariffId) : null;
+              const statusLabel = {active:'Активный',frozen:'Заморожен',inactive:'Неактивный'}[crm?.status] || '—';
+              const statusClass = {active:'badge-success',frozen:'badge-warning',inactive:'badge-danger'}[crm?.status] || '';
+              const visitsStyle = (crm?.visitsLeft ?? 99) <= 2 ? 'color:#ef4444;font-weight:700' : '';
+              return `<tr>
+                <td><b>${escapeHtml(m.studentName || m.studentId)}</b></td>
+                <td>${crm ? `<span class="badge ${statusClass}">${statusLabel}</span>` : '<span style="color:#94a3b8">нет карточки</span>'}</td>
+                <td><span style="${visitsStyle}">${crm ? crm.visitsLeft : '—'}</span></td>
+                <td>${tariff ? escapeHtml(tariff.name) : '—'}</td>
+              </tr>`;
+            }).join('') : '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:16px">Нет учеников</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+    }
+  }
+
+  section.innerHTML = html;
+}
+</script>

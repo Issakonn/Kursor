@@ -56,10 +56,11 @@ async function init() {
   try {
     try { const fresh = await API._request('GET','/api/auth/me'); Object.assign(user, fresh.user || {}); localStorage.setItem('kursor_user_cache', JSON.stringify(user)); } catch {}
     if (user.role === 'student') {
-      const [tasks, modules, progress] = await Promise.all([
+      const [tasks, modules, progress, feedbackList] = await Promise.all([
         API.getTasks(), API.getModules(), API.getMyProgress(),
+        API._request('GET', '/api/feedback').catch(() => []),
       ]);
-      render(tasks, modules, progress);
+      render(tasks, modules, progress, feedbackList);
     } else {
       renderStaff();
     }
@@ -96,7 +97,7 @@ function renderStaff() {
     </div>`;
 }
 
-function render(tasks, modules, progress) {
+function render(tasks, modules, progress, feedbackList) {
   const grp = KURSOR_DB.GROUPS[user.group];
 
   const recent = Object.entries(progress.tasks)
@@ -152,6 +153,18 @@ function render(tasks, modules, progress) {
           </div>`;
         }).join('')}
       </div>` : '<div class="card" style="text-align:center;padding:30px;color:#64748b">Пока нет решённых задач 😊</div>'}
+
+    <h2 class="section-title">Отзывы учителей</h2>
+    ${(feedbackList||[]).length ? `
+      <div class="card" style="padding:0">
+        ${(feedbackList||[]).map(f => {
+          const typeLabel = {lesson:'📚 Урок',course:'🎓 Курс',general:'💬 Общий'}[f.type]||f.type;
+          return '<div style="padding:14px 18px;border-bottom:1px solid #e2e8f0">'
+            + '<div style="font-size:12px;color:#64748b;margin-bottom:4px">' + typeLabel + ' · ' + new Date(f.createdAt).toLocaleDateString('ru-RU') + '</div>'
+            + '<div>' + escapeHtml(f.text) + '</div>'
+            + '</div>';
+        }).join('')}
+      </div>` : '<div class="card" style="text-align:center;padding:24px;color:#64748b">Отзывов пока нет</div>'}
   `;
 }
 

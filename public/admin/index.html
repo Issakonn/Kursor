@@ -18,6 +18,16 @@
     <a href="#" data-tab="users">Ученики/Учителя</a>
     <a href="#" data-tab="modules">Модули и темы</a>
     <a href="#" data-tab="tasks">Задачи</a>
+    <div style="border-top:1px solid rgba(255,255,255,0.15);margin:12px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,0.4);padding-top:10px">Фаза 1</div>
+    <a href="#" data-tab="materials">Материалы курсов</a>
+    <a href="#" data-tab="feedback">Отзывы</a>
+    <a href="#" data-tab="exportimport">Импорт / Экспорт</a>
+    <div style="border-top:1px solid rgba(255,255,255,0.15);margin:12px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,0.4);padding-top:10px">Фаза 2 — CRM</div>
+    <a href="#" data-tab="branches">🏢 Филиалы</a>
+    <a href="#" data-tab="tariffs">💳 Тарифы</a>
+    <a href="#" data-tab="groups">👥 Группы</a>
+    <a href="#" data-tab="clients">🧒 Клиенты</a>
+    <a href="#" data-tab="permissions">🔑 Права учителей</a>
     <a href="#" onclick="logout();return false;" style="margin-top:30px;color:#ef4444">Выйти</a>
   </aside>
   <main class="admin-main">
@@ -84,6 +94,14 @@ async function render() {
       case 'users': renderUsers(); break;
       case 'modules': renderModules(); break;
       case 'tasks': renderTasks(); break;
+      case 'materials': renderMaterials(); break;
+      case 'feedback': renderFeedbackTab(); break;
+      case 'exportimport': renderExportImport(); break;
+      case 'branches': renderBranches(); break;
+      case 'tariffs': renderTariffs(); break;
+      case 'groups': renderGroups(); break;
+      case 'clients': renderClients(); break;
+      case 'permissions': renderPermissions(); break;
     }
   } catch (e) {
     document.getElementById('tab').innerHTML = `<div class="card" style="padding:30px;color:#ef4444">Ошибка отрисовки "${currentTab}": ${escapeHtml(e.message)}</div>`;
@@ -530,8 +548,916 @@ async function removeTask(id) {
   catch (e) { alert(e.message); }
 }
 
+
+/* ============================================================
+   ФАЗА 1 — МАТЕРИАЛЫ КУРСОВ
+   ============================================================ */
+let cacheAccess = [];
+let cacheMaterials = [];
+
+async function renderMaterials() {
+  document.getElementById('tab').innerHTML = 'Загружаем…';
+  try {
+    [cacheAccess, cacheMaterials] = await Promise.all([
+      API._request('GET', '/api/teacher-course-access'),
+      API._request('GET', '/api/materials'),
+    ]);
+  } catch(e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  const now = Date.now();
+  document.getElementById('tab').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1>Материалы курсов</h1>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" onclick="openAccessForm()">Выдать доступ учителю</button>
+        <button class="btn" onclick="openMaterialForm()">Добавить материал</button>
+      </div>
+    </div>
+
+    <h2 class="section-title">Доступы учителей к курсам</h2>
+    <table class="table" style="margin-bottom:28px">
+      <thead><tr><th>Учитель</th><th>Курс</th><th>Выдан</th><th>Истекает</th><th>Статус</th><th></th></tr></thead>
+      <tbody>
+        ${cacheAccess.length ? cacheAccess.map(a => {
+          const teacher = cache.users.find(u => u.id === a.teacherId);
+          const mod = cache.modules.find(m => m.id === a.courseId);
+          const active = a.expiresAt > now;
+          return `<tr>
+            <td>${teacher ? escapeHtml(teacher.name) : a.teacherId}</td>
+            <td>${mod ? escapeHtml(mod.title) : a.courseId}</td>
+            <td>${new Date(a.grantedAt).toLocaleDateString('ru')}</td>
+            <td>${new Date(a.expiresAt).toLocaleDateString('ru')}</td>
+            <td><span class="badge ${active ? 'badge-success' : 'badge-danger'}">${active ? 'Активен' : 'Истёк'}</span></td>
+            <td>
+              <button class="btn btn-ghost" onclick="openAccessForm('${a.id}')">✏️</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeAccess('${a.id}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px">Доступов нет</td></tr>'}
+      </tbody>
+    </table>
+
+    <h2 class="section-title">Материалы</h2>
+    <table class="table">
+      <thead><tr><th>Название</th><th>Курс</th><th>Тип</th><th>Создал</th><th>Дата</th><th></th></tr></thead>
+      <tbody>
+        ${cacheMaterials.length ? cacheMaterials.map(m => {
+          const mod = cache.modules.find(x => x.id === m.courseId);
+          const creator = cache.users.find(u => u.id === m.createdBy);
+          const typeLabel = {presentation:'📊 Презентация',task:'📝 Задача',text:'📄 Текст',file:'📎 Файл'}[m.type] || m.type;
+          return `<tr>
+            <td><b>${escapeHtml(m.title)}</b></td>
+            <td>${mod ? escapeHtml(mod.title) : m.courseId}</td>
+            <td>${typeLabel}</td>
+            <td>${creator ? escapeHtml(creator.name) : '—'}</td>
+            <td>${new Date(m.createdAt).toLocaleDateString('ru')}</td>
+            <td>
+              <button class="btn btn-ghost" onclick="openMaterialForm('${m.id}')">✏️</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeMaterial('${m.id}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px">Материалов нет</td></tr>'}
+      </tbody>
+    </table>
+  `;
+}
+
+function openMaterialForm(id) {
+  const m = id ? cacheMaterials.find(x => x.id === id) : {};
+  const moduleOptions = cache.modules.map(mod =>
+    `<option value="${mod.id}" ${(m.courseId||'')=== mod.id?'selected':''}>${escapeHtml(mod.title)}</option>`
+  ).join('');
+  const typeOptions = ['presentation','task','text','file'].map(t =>
+    `<option value="${t}" ${(m.type||'text')===t?'selected':''}>${{presentation:'📊 Презентация',task:'📝 Задача',text:'📄 Текст',file:'📎 Файл'}[t]}</option>`
+  ).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${id ? 'Редактировать' : 'Добавить'} материал</h2>
+    <div class="form-group"><label>Название</label><input class="form-input" id="m_title" value="${escapeHtml(m.title||'')}" placeholder="Название материала"></div>
+    <div class="form-group"><label>Курс</label><select class="form-input" id="m_course"><option value="">—</option>${moduleOptions}</select></div>
+    <div class="form-group"><label>Тип</label><select class="form-input" id="m_type">${typeOptions}</select></div>
+    <div class="form-group"><label>Содержимое / Ссылка</label><textarea class="form-input" id="m_content" rows="5" placeholder="Текст, URL или путь к файлу">${escapeHtml(m.content||'')}</textarea></div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveMaterial('${id||''}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveMaterial(id) {
+  const body = {
+    title:    document.getElementById('m_title').value.trim(),
+    courseId: document.getElementById('m_course').value,
+    type:     document.getElementById('m_type').value,
+    content:  document.getElementById('m_content').value.trim() || null,
+  };
+  const err = document.getElementById('modalErr');
+  if (!body.title || !body.courseId) { err.textContent = 'Заполните название и курс'; return; }
+  try {
+    if (id) await API._request('PUT', `/api/materials/${id}`, body);
+    else    await API._request('POST', '/api/materials', body);
+    closeModal(); await renderMaterials(); showToast('Материал сохранён', 'success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function removeMaterial(id) {
+  if (!confirm('Удалить материал?')) return;
+  try {
+    await API._request('DELETE', `/api/materials/${id}`);
+    await renderMaterials(); showToast('Удалено', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openAccessForm(id) {
+  const a = id ? cacheAccess.find(x => x.id === id) : {};
+  const teacherOptions = cache.users
+    .filter(u => u.role === 'teacher' || u.role === 'assistant')
+    .map(u => `<option value="${u.id}" ${(a.teacherId||'')=== u.id?'selected':''}>${escapeHtml(u.name)}</option>`)
+    .join('');
+  const courseOptions = cache.modules.map(m =>
+    `<option value="${m.id}" ${(a.courseId||'')=== m.id?'selected':''}>${escapeHtml(m.title)}</option>`
+  ).join('');
+  const defExpires = a.expiresAt
+    ? new Date(a.expiresAt).toISOString().slice(0,10)
+    : new Date(Date.now()+90*24*3600*1000).toISOString().slice(0,10);
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${id ? 'Изменить доступ' : 'Выдать доступ учителю'}</h2>
+    ${!id ? `<div class="form-group"><label>Учитель</label><select class="form-input" id="a_teacher"><option value="">—</option>${teacherOptions}</select></div>` : ''}
+    ${!id ? `<div class="form-group"><label>Курс</label><select class="form-input" id="a_course"><option value="">—</option>${courseOptions}</select></div>` : ''}
+    <div class="form-group"><label>Действует до</label><input class="form-input" type="date" id="a_expires" value="${defExpires}"></div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveAccess('${id||''}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveAccess(id) {
+  const err = document.getElementById('modalErr');
+  const expiresAt = new Date(document.getElementById('a_expires').value).getTime();
+  if (!expiresAt) { err.textContent = 'Укажите дату'; return; }
+  try {
+    if (id) {
+      await API._request('PUT', `/api/teacher-course-access/${id}`, { expiresAt });
+    } else {
+      const teacherId = document.getElementById('a_teacher').value;
+      const courseId  = document.getElementById('a_course').value;
+      if (!teacherId || !courseId) { err.textContent = 'Выберите учителя и курс'; return; }
+      await API._request('POST', '/api/teacher-course-access', { teacherId, courseId, expiresAt });
+    }
+    closeModal(); await renderMaterials(); showToast('Доступ сохранён', 'success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function removeAccess(id) {
+  if (!confirm('Отозвать доступ?')) return;
+  try {
+    await API._request('DELETE', `/api/teacher-course-access/${id}`);
+    await renderMaterials(); showToast('Доступ отозван', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ============================================================
+   ФАЗА 1 — ОТЗЫВЫ (FEEDBACK)
+   ============================================================ */
+let cacheFeedback = [];
+
+async function renderFeedbackTab() {
+  document.getElementById('tab').innerHTML = 'Загружаем…';
+  try {
+    cacheFeedback = await API._request('GET', '/api/feedback');
+  } catch(e) {
+    document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  document.getElementById('tab').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1>Отзывы учеников</h1>
+      <button class="btn" onclick="openFeedbackForm()">Написать отзыв</button>
+    </div>
+    <table class="table">
+      <thead><tr><th>Ученик</th><th>Учитель</th><th>Тип</th><th>Текст</th><th>Внутр.</th><th>Дата</th><th></th></tr></thead>
+      <tbody>
+        ${cacheFeedback.length ? cacheFeedback.map(f => {
+          const student = cache.users.find(u => u.id === f.studentId);
+          const teacher = cache.users.find(u => u.id === f.teacherId);
+          const typeLabel = {lesson:'📚 Урок',course:'🎓 Курс',general:'💬 Общий'}[f.type]||f.type;
+          return `<tr>
+            <td>${student ? escapeHtml(student.name) : '—'}</td>
+            <td>${teacher ? escapeHtml(teacher.name) : '—'}</td>
+            <td>${typeLabel}</td>
+            <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(f.text)}</td>
+            <td>${f.isInternal ? '<span class="badge badge-warning">🔒 Внутр.</span>' : ''}</td>
+            <td>${new Date(f.createdAt).toLocaleDateString('ru')}</td>
+            <td>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="removeFeedback('${f.id}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px">Отзывов нет</td></tr>'}
+      </tbody>
+    </table>
+  `;
+}
+
+function openFeedbackForm() {
+  const studentOptions = cache.users
+    .filter(u => u.role === 'student')
+    .map(u => `<option value="${u.id}">${escapeHtml(u.name)}</option>`)
+    .join('');
+  const moduleOptions = cache.modules
+    .map(m => `<option value="${m.id}">${escapeHtml(m.title)}</option>`)
+    .join('');
+  document.getElementById('modalContent').innerHTML = `
+    <h2>Написать отзыв</h2>
+    <div class="form-group"><label>Ученик</label><select class="form-input" id="fb_student"><option value="">—</option>${studentOptions}</select></div>
+    <div class="form-group"><label>Тип</label>
+      <select class="form-input" id="fb_type">
+        <option value="general">💬 Общий</option>
+        <option value="lesson">📚 По уроку</option>
+        <option value="course">🎓 По курсу</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Курс (необязательно)</label><select class="form-input" id="fb_module"><option value="">—</option>${moduleOptions}</select></div>
+    <div class="form-group"><label>Текст</label><textarea class="form-input" id="fb_text" rows="4" placeholder="Комментарий об успехах ученика..."></textarea></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="fb_internal">
+      <label for="fb_internal" style="margin:0">🔒 Внутренний (не виден родителям)</label>
+    </div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveFeedback()">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveFeedback() {
+  const body = {
+    studentId:  document.getElementById('fb_student').value,
+    type:       document.getElementById('fb_type').value,
+    moduleId:   document.getElementById('fb_module').value || null,
+    text:       document.getElementById('fb_text').value.trim(),
+    isInternal: document.getElementById('fb_internal').checked,
+  };
+  const err = document.getElementById('modalErr');
+  if (!body.studentId) { err.textContent = 'Выберите ученика'; return; }
+  if (!body.text)       { err.textContent = 'Введите текст'; return; }
+  try {
+    await API._request('POST', '/api/feedback', body);
+    closeModal(); await renderFeedbackTab(); showToast('Отзыв сохранён', 'success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function removeFeedback(id) {
+  if (!confirm('Удалить отзыв?')) return;
+  try {
+    await API._request('DELETE', `/api/feedback/${id}`);
+    await renderFeedbackTab(); showToast('Удалено', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+/* ============================================================
+   ФАЗА 1 — ИМПОРТ / ЭКСПОРТ
+   ============================================================ */
+function renderExportImport() {
+  document.getElementById('tab').innerHTML = `
+    <h1>Импорт / Экспорт</h1>
+
+    <h2 class="section-title" style="margin-top:24px">📤 Экспорт</h2>
+    <div class="card" style="padding:24px">
+      <p style="color:#64748b;margin-bottom:16px">Скачать данные платформы в формате CSV или JSON.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <button class="btn btn-secondary" onclick="doExport('users','csv')">👤 Пользователи CSV</button>
+        <button class="btn btn-secondary" onclick="doExport('users','json')">👤 Пользователи JSON</button>
+        <button class="btn btn-secondary" onclick="doExport('modules','csv')">📚 Модули CSV</button>
+        <button class="btn btn-secondary" onclick="doExport('modules','json')">📚 Модули JSON</button>
+        <button class="btn btn-secondary" onclick="doExport('materials','csv')">📎 Материалы CSV</button>
+        <button class="btn btn-secondary" onclick="doExport('materials','json')">📎 Материалы JSON</button>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:28px">📥 Импорт</h2>
+    <div class="card" style="padding:24px">
+      <p style="color:#64748b;margin-bottom:16px">
+        Загрузите CSV или JSON-файл. Сначала нажмите <b>Предпросмотр</b> — данные проверятся без сохранения.
+        Затем <b>Импортировать</b> запишет данные.
+      </p>
+      <div class="form-group">
+        <label>Тип данных</label>
+        <select class="form-input" id="imp_type" style="max-width:220px">
+          <option value="users">👤 Пользователи</option>
+          <option value="modules">📚 Модули</option>
+          <option value="materials">📎 Материалы</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Файл (CSV или JSON)</label>
+        <input type="file" id="imp_file" class="form-input" accept=".csv,.json" style="padding:8px">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-secondary" onclick="doImport(true)">🔍 Предпросмотр</button>
+        <button class="btn" onclick="doImport(false)">✅ Импортировать</button>
+      </div>
+      <div id="imp_result" style="margin-top:18px"></div>
+    </div>
+  `;
+}
+
+function doExport(type, format) {
+  fetch(`/api/export/${type}?format=${format}`, {
+    headers: { Authorization: 'Bearer ' + API.getToken() }
+  })
+  .then(r => r.ok ? r.blob() : r.json().then(j => { throw new Error(j.error); }))
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${type}.${format}`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  })
+  .catch(e => showToast('Ошибка экспорта: ' + e.message, 'error'));
+}
+
+async function doImport(dryRun) {
+  const type = document.getElementById('imp_type').value;
+  const file = document.getElementById('imp_file').files[0];
+  const result = document.getElementById('imp_result');
+  if (!file) { result.innerHTML = '<span style="color:#ef4444">Выберите файл</span>'; return; }
+  const text = await file.text();
+  const format = file.name.endsWith('.csv') ? 'csv' : 'json';
+  result.innerHTML = 'Обработка…';
+  try {
+    const resp = await API._request('POST', `/api/import/${type}`, { format, data: text, dryRun });
+    if (dryRun) {
+      const errHtml = resp.errors && resp.errors.length
+        ? `<div style="margin-top:10px"><b style="color:#ef4444">Ошибки (${resp.errors.length}):</b><ul style="margin:6px 0 0 20px">` +
+          resp.errors.map(e => `<li>Строка ${e.line}: ${escapeHtml(e.error)}</li>`).join('') + '</ul></div>'
+        : '';
+      result.innerHTML = `<div class="card" style="padding:16px;background:#f0fdf4;border:1px solid #86efac">
+        📋 Предпросмотр: найдено <b>${resp.total}</b>, корректных <b style="color:#16a34a">${resp.valid}</b>${errHtml}</div>`;
+    } else {
+      result.innerHTML = `<div class="card" style="padding:16px;background:#f0fdf4;border:1px solid #86efac">
+        ✅ Импортировано: <b>${resp.imported}</b> записей</div>`;
+      await loadAll();
+    }
+  } catch(e) {
+    result.innerHTML = `<div class="card" style="padding:16px;background:#fef2f2;border:1px solid #fca5a5;color:#ef4444">
+      Ошибка: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
 function closeModal() { document.getElementById('modal').classList.remove('active'); }
 document.getElementById('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
 </script>
 </body>
 </html>
+<script>
+/* ============================================================
+   ФАЗА 2 — CRM: Филиалы, Тарифы, Группы, Клиенты, Права
+   ============================================================ */
+
+// ─── CRM cache ────────────────────────────────────────────
+let crm = { branches:[], tariffs:[], groups:[], clients:[] };
+
+async function loadCRM() {
+  const [branches, tariffs, groups] = await Promise.all([
+    API._request('GET','/api/branches'),
+    API._request('GET','/api/tariffs'),
+    API._request('GET','/api/groups'),
+  ]);
+  crm.branches = branches || [];
+  crm.tariffs  = tariffs  || [];
+  crm.groups   = groups   || [];
+  try {
+    crm.clients = await API._request('GET','/api/students-crm');
+  } catch { crm.clients = []; }
+}
+
+// ─── helper to show loading state ─────────────────────────
+function crmWrap(fn) {
+  return async function() {
+    document.getElementById('tab').innerHTML = 'Загружаем…';
+    try { await loadCRM(); fn(); }
+    catch(e) { document.getElementById('tab').innerHTML = `<div class="card" style="padding:24px;color:#ef4444">Ошибка: ${escapeHtml(e.message)}</div>`; }
+  };
+}
+
+// ─── BRANCHES ─────────────────────────────────────────────
+const renderBranches = crmWrap(function() {
+  document.getElementById('tab').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1>Филиалы (${crm.branches.length})</h1>
+      <button class="btn" onclick="openBranchForm()">Добавить филиал</button>
+    </div>
+    <table class="table">
+      <thead><tr><th>Название</th><th>Адрес</th><th></th></tr></thead>
+      <tbody>
+        ${crm.branches.length ? crm.branches.map(b => `
+          <tr>
+            <td><b>${escapeHtml(b.name)}</b></td>
+            <td>${escapeHtml(b.address||'—')}</td>
+            <td>
+              <button class="btn btn-ghost" onclick="openBranchForm('${b.id}')">✏️</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteBranch('${b.id}')">🗑</button>
+            </td>
+          </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:24px">Филиалов нет</td></tr>'}
+      </tbody>
+    </table>`;
+});
+
+function openBranchForm(id) {
+  const b = id ? crm.branches.find(x=>x.id===id) : {};
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${id ? 'Редактировать' : 'Добавить'} филиал</h2>
+    <div class="form-group"><label>Название</label><input class="form-input" id="b_name" value="${escapeHtml(b.name||'')}"></div>
+    <div class="form-group"><label>Адрес</label><input class="form-input" id="b_addr" value="${escapeHtml(b.address||'')}"></div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveBranch('${id||''}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveBranch(id) {
+  const body = { name: document.getElementById('b_name').value.trim(), address: document.getElementById('b_addr').value.trim() };
+  const err = document.getElementById('modalErr');
+  if (!body.name) { err.textContent = 'Введите название'; return; }
+  try {
+    if (id) await API._request('PUT',`/api/branches/${id}`,body);
+    else    await API._request('POST','/api/branches',body);
+    closeModal(); renderBranches(); showToast('Сохранено','success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function deleteBranch(id) {
+  if (!confirm('Удалить филиал?')) return;
+  try { await API._request('DELETE',`/api/branches/${id}`); renderBranches(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+// ─── TARIFFS ──────────────────────────────────────────────
+const renderTariffs = crmWrap(function() {
+  document.getElementById('tab').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1>Тарифы / Абонементы (${crm.tariffs.length})</h1>
+      <button class="btn" onclick="openTariffForm()">Добавить тариф</button>
+    </div>
+    <table class="table">
+      <thead><tr><th>Название</th><th>Занятий</th><th>Срок (дн.)</th><th>Цена</th><th>Доп. урок отдельно</th><th></th></tr></thead>
+      <tbody>
+        ${crm.tariffs.length ? crm.tariffs.map(t => `
+          <tr>
+            <td><b>${escapeHtml(t.name)}</b></td>
+            <td>${t.visitsCount}</td>
+            <td>${t.durationDays}</td>
+            <td>${t.price ? t.price.toLocaleString('ru') + ' ₸' : '—'}</td>
+            <td>${t.extraLessonsSeparate ? '<span class="badge">Да</span>' : 'Нет'}</td>
+            <td>
+              <button class="btn btn-ghost" onclick="openTariffForm('${t.id}')">✏️</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteTariff('${t.id}')">🗑</button>
+            </td>
+          </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px">Тарифов нет</td></tr>'}
+      </tbody>
+    </table>`;
+});
+
+function openTariffForm(id) {
+  const t = id ? crm.tariffs.find(x=>x.id===id) : {};
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${id ? 'Редактировать' : 'Добавить'} тариф</h2>
+    <div class="form-group"><label>Название</label><input class="form-input" id="t_name" value="${escapeHtml(t.name||'')}"></div>
+    <div class="form-group"><label>Кол-во занятий</label><input class="form-input" id="t_visits" type="number" min="1" value="${t.visitsCount||8}"></div>
+    <div class="form-group"><label>Срок действия (дней)</label><input class="form-input" id="t_days" type="number" min="1" value="${t.durationDays||30}"></div>
+    <div class="form-group"><label>Цена (₸)</label><input class="form-input" id="t_price" type="number" min="0" value="${t.price||0}"></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="t_extra" ${t.extraLessonsSeparate?'checked':''}>
+      <label for="t_extra" style="margin:0">Доп. урок списывается отдельно</label>
+    </div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveTariff('${id||''}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveTariff(id) {
+  const body = {
+    name: document.getElementById('t_name').value.trim(),
+    visitsCount: parseInt(document.getElementById('t_visits').value),
+    durationDays: parseInt(document.getElementById('t_days').value),
+    price: parseInt(document.getElementById('t_price').value)||0,
+    extraLessonsSeparate: document.getElementById('t_extra').checked,
+  };
+  const err = document.getElementById('modalErr');
+  if (!body.name || !body.visitsCount || !body.durationDays) { err.textContent = 'Заполните обязательные поля'; return; }
+  try {
+    if (id) await API._request('PUT',`/api/tariffs/${id}`,body);
+    else    await API._request('POST','/api/tariffs',body);
+    closeModal(); renderTariffs(); showToast('Сохранено','success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function deleteTariff(id) {
+  if (!confirm('Удалить тариф?')) return;
+  try { await API._request('DELETE',`/api/tariffs/${id}`); renderTariffs(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+// ─── GROUPS ───────────────────────────────────────────────
+let currentGroupId = null;
+let groupSchedule = [];
+let groupMembers = [];
+
+const renderGroups = crmWrap(async function() {
+  const filterBranch = document.getElementById('grp_filter_branch')?.value || '';
+  const filtered = filterBranch ? crm.groups.filter(g=>g.branchId===filterBranch) : crm.groups;
+  const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  document.getElementById('tab').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1>Группы (${crm.groups.length})</h1>
+      <button class="btn" onclick="openGroupForm()">Создать группу</button>
+    </div>
+    <div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">
+      <label>Филиал:</label>
+      <select class="form-input" id="grp_filter_branch" style="max-width:220px" onchange="renderGroups()">
+        <option value="">Все</option>
+        ${crm.branches.map(b=>`<option value="${b.id}" ${b.id===filterBranch?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+      </select>
+    </div>
+    <table class="table">
+      <thead><tr><th>Название</th><th>Тип</th><th>Филиал</th><th>Учитель</th><th>Статус</th><th>Расписание</th><th></th></tr></thead>
+      <tbody>
+        ${filtered.length ? filtered.map(g => {
+          const branch = crm.branches.find(b=>b.id===g.branchId);
+          const teacher = cache.users.find(u=>u.id===g.teacherId);
+          return `<tr>
+            <td><b>${escapeHtml(g.name)}</b></td>
+            <td><span class="badge ${g.lessonKind==='main'?'':'badge-warning'}">${g.lessonKind==='main'?'Основная':'Доп.'}</span></td>
+            <td>${branch?escapeHtml(branch.name):'—'}</td>
+            <td>${teacher?escapeHtml(teacher.name):'—'}</td>
+            <td><span class="badge ${g.status==='active'?'badge-success':'badge-danger'}">${g.status==='active'?'Активна':'Архив'}</span></td>
+            <td><button class="btn btn-ghost" onclick="openGroupDetail('${g.id}')">📅 Расписание</button></td>
+            <td>
+              <button class="btn btn-ghost" onclick="openGroupForm('${g.id}')">✏️</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteGroup('${g.id}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px">Групп нет</td></tr>'}
+      </tbody>
+    </table>`;
+});
+
+function openGroupForm(id) {
+  const g = id ? crm.groups.find(x=>x.id===id) : { status:'active', lessonKind:'main' };
+  const branchOpts = crm.branches.map(b=>`<option value="${b.id}" ${g.branchId===b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
+  const teacherOpts = cache.users.filter(u=>u.role==='teacher'||u.role==='assistant').map(u=>`<option value="${u.id}" ${g.teacherId===u.id?'selected':''}>${escapeHtml(u.name)}</option>`).join('');
+  const courseOpts = cache.modules.map(m=>`<option value="${m.id}" ${g.courseId===m.id?'selected':''}>${escapeHtml(m.title)}</option>`).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${id ? 'Редактировать' : 'Создать'} группу</h2>
+    <div class="form-group"><label>Название</label><input class="form-input" id="g_name" value="${escapeHtml(g.name||'')}"></div>
+    <div class="form-group"><label>Филиал</label><select class="form-input" id="g_branch"><option value="">—</option>${branchOpts}</select></div>
+    <div class="form-group"><label>Учитель</label><select class="form-input" id="g_teacher"><option value="">—</option>${teacherOpts}</select></div>
+    <div class="form-group"><label>Ассистент (необяз.)</label><select class="form-input" id="g_assistant"><option value="">—</option>${teacherOpts}</select></div>
+    <div class="form-group"><label>Курс (необяз.)</label><select class="form-input" id="g_course"><option value="">—</option>${courseOpts}</select></div>
+    <div class="form-group"><label>Тип урока</label>
+      <select class="form-input" id="g_kind">
+        <option value="main" ${g.lessonKind==='main'?'selected':''}>Основной</option>
+        <option value="extra" ${g.lessonKind==='extra'?'selected':''}>Дополнительный</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Статус</label>
+      <select class="form-input" id="g_status">
+        <option value="active" ${g.status==='active'?'selected':''}>Активна</option>
+        <option value="archived" ${g.status==='archived'?'selected':''}>Архив</option>
+      </select>
+    </div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveGroup('${id||''}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveGroup(id) {
+  const body = {
+    name: document.getElementById('g_name').value.trim(),
+    branchId: document.getElementById('g_branch').value,
+    teacherId: document.getElementById('g_teacher').value,
+    assistantId: document.getElementById('g_assistant').value || null,
+    courseId: document.getElementById('g_course').value || null,
+    lessonKind: document.getElementById('g_kind').value,
+    status: document.getElementById('g_status').value,
+  };
+  const err = document.getElementById('modalErr');
+  if (!body.name || !body.branchId || !body.teacherId) { err.textContent = 'Заполните обязательные поля'; return; }
+  try {
+    if (id) await API._request('PUT',`/api/groups/${id}`,body);
+    else    await API._request('POST','/api/groups',body);
+    closeModal(); renderGroups(); showToast('Сохранено','success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function deleteGroup(id) {
+  if (!confirm('Удалить группу?')) return;
+  try { await API._request('DELETE',`/api/groups/${id}`); renderGroups(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function openGroupDetail(groupId) {
+  currentGroupId = groupId;
+  const g = crm.groups.find(x=>x.id===groupId);
+  const DAYS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  let schedule = [], members = [];
+  try {
+    [schedule, members] = await Promise.all([
+      API._request('GET',`/api/groups/${groupId}/schedule`),
+      API._request('GET',`/api/groups/${groupId}/members`),
+    ]);
+  } catch(e) { showToast(e.message,'error'); return; }
+  groupSchedule = schedule;
+  groupMembers = members;
+
+  const studentOpts = cache.users.filter(u=>u.role==='student').map(u=>`<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
+
+  document.getElementById('modalContent').innerHTML = `
+    <h2>Группа: ${escapeHtml(g.name)}</h2>
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:260px">
+        <h3 style="margin:0 0 10px">📅 Расписание</h3>
+        <table class="table" style="margin-bottom:12px">
+          <thead><tr><th>День</th><th>Время</th><th>Длит. (мин)</th><th></th></tr></thead>
+          <tbody>
+            ${schedule.length ? schedule.map(s=>`
+              <tr>
+                <td>${DAYS[s.weekday]}</td>
+                <td>${s.startTime}</td>
+                <td>${s.durationMin}</td>
+                <td><button class="btn btn-ghost" style="color:#ef4444" onclick="deleteSchedule('${s.id}','${groupId}')">🗑</button></td>
+              </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#64748b">Нет слотов</td></tr>'}
+          </tbody>
+        </table>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="form-input" id="sch_day" style="width:70px">
+            ${DAYS.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}
+          </select>
+          <input class="form-input" type="time" id="sch_time" value="10:00" style="width:100px">
+          <input class="form-input" type="number" id="sch_dur" value="90" min="30" style="width:75px" placeholder="мин">
+          <button class="btn" onclick="addSchedule('${groupId}')">+ Добавить</button>
+        </div>
+      </div>
+      <div style="flex:1;min-width:260px">
+        <h3 style="margin:0 0 10px">👤 Состав</h3>
+        <table class="table" style="margin-bottom:12px">
+          <thead><tr><th>Ученик</th><th>С</th><th></th></tr></thead>
+          <tbody>
+            ${members.length ? members.map(m=>`
+              <tr>
+                <td>${escapeHtml(m.studentName||m.studentId)}</td>
+                <td>${new Date(m.since).toLocaleDateString('ru')}</td>
+                <td><button class="btn btn-ghost" style="color:#ef4444" onclick="removeMember('${m.id}','${groupId}')">🗑</button></td>
+              </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:#64748b">Пусто</td></tr>'}
+          </tbody>
+        </table>
+        <div style="display:flex;gap:8px">
+          <select class="form-input" id="mbr_student"><option value="">— Ученик —</option>${studentOpts}</select>
+          <button class="btn" onclick="addMember('${groupId}')">+ Добавить</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="btn btn-outline" onclick="closeModal()">Закрыть</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function addSchedule(groupId) {
+  const body = {
+    weekday: parseInt(document.getElementById('sch_day').value),
+    startTime: document.getElementById('sch_time').value,
+    durationMin: parseInt(document.getElementById('sch_dur').value)||90,
+  };
+  try { await API._request('POST',`/api/groups/${groupId}/schedule`,body); await openGroupDetail(groupId); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function deleteSchedule(id, groupId) {
+  try { await API._request('DELETE',`/api/groups/${groupId}/schedule/${id}`); await openGroupDetail(groupId); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function addMember(groupId) {
+  const studentId = document.getElementById('mbr_student').value;
+  if (!studentId) { showToast('Выберите ученика','error'); return; }
+  try { await API._request('POST',`/api/groups/${groupId}/members`,{studentId}); await openGroupDetail(groupId); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+async function removeMember(id, groupId) {
+  try { await API._request('DELETE',`/api/groups/${groupId}/members/${id}`); await openGroupDetail(groupId); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+// ─── CLIENTS ──────────────────────────────────────────────
+const renderClients = crmWrap(function() {
+  const filterStatus = document.getElementById('cli_filter_status')?.value || '';
+  const filterBranch = document.getElementById('cli_filter_branch')?.value || '';
+  let list = crm.clients;
+  if (filterStatus) list = list.filter(c=>c.status===filterStatus);
+  if (filterBranch) list = list.filter(c=>c.branchId===filterBranch);
+
+  document.getElementById('tab').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h1>Клиенты / Ученики CRM (${list.length})</h1>
+      <button class="btn" onclick="openClientForm()">Добавить карточку</button>
+    </div>
+    <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <select class="form-input" id="cli_filter_status" style="max-width:180px" onchange="renderClients()">
+        <option value="">Все статусы</option>
+        <option value="active" ${filterStatus==='active'?'selected':''}>Активный</option>
+        <option value="frozen" ${filterStatus==='frozen'?'selected':''}>Заморожен</option>
+        <option value="inactive" ${filterStatus==='inactive'?'selected':''}>Неактивный</option>
+      </select>
+      <select class="form-input" id="cli_filter_branch" style="max-width:220px" onchange="renderClients()">
+        <option value="">Все филиалы</option>
+        ${crm.branches.map(b=>`<option value="${b.id}" ${b.id===filterBranch?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}
+      </select>
+    </div>
+    <table class="table">
+      <thead><tr><th>Имя</th><th>Статус</th><th>Остаток занятий</th><th>Тариф</th><th>Филиал</th><th>Согл. видео</th><th></th></tr></thead>
+      <tbody>
+        ${list.length ? list.map(c => {
+          const tariff = crm.tariffs.find(t=>t.id===c.tariffId);
+          const branch = crm.branches.find(b=>b.id===c.branchId);
+          const statusBadge = {active:'badge-success',frozen:'badge-warning',inactive:'badge-danger'}[c.status]||'';
+          const statusLabel = {active:'Активный',frozen:'Заморожен',inactive:'Неактивный'}[c.status]||c.status;
+          const visitsColor = c.visitsLeft <= 2 ? 'color:#ef4444;font-weight:700' : '';
+          return `<tr>
+            <td><b>${escapeHtml(c.fullName)}</b></td>
+            <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+            <td><span style="${visitsColor}">${c.visitsLeft}</span></td>
+            <td>${tariff?escapeHtml(tariff.name):'—'}</td>
+            <td>${branch?escapeHtml(branch.name):'—'}</td>
+            <td>${c.videoConsent ? '✅' : '❌'}</td>
+            <td>
+              <button class="btn btn-ghost" onclick="openClientForm('${c.userId}')">✏️</button>
+              <button class="btn btn-ghost" style="color:#ef4444" onclick="deleteClient('${c.userId}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px">Клиентов нет</td></tr>'}
+      </tbody>
+    </table>`;
+});
+
+function openClientForm(userId) {
+  const c = userId ? crm.clients.find(x=>x.userId===userId) : {};
+  const studentOpts = cache.users.filter(u=>u.role==='student').map(u=>`<option value="${u.id}" ${(c.userId||'')=== u.id?'selected':''}>${escapeHtml(u.name)} (${u.login})</option>`).join('');
+  const branchOpts = crm.branches.map(b=>`<option value="${b.id}" ${(c.branchId||'')=== b.id?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
+  const tariffOpts = crm.tariffs.map(t=>`<option value="${t.id}" ${(c.tariffId||'')=== t.id?'selected':''}>${escapeHtml(t.name)}</option>`).join('');
+  const managerOpts = cache.users.filter(u=>u.role==='admin'||u.role==='teacher').map(u=>`<option value="${u.id}" ${(c.responsibleManagerId||'')=== u.id?'selected':''}>${escapeHtml(u.name)}</option>`).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <h2>${userId ? 'Редактировать' : 'Добавить'} карточку клиента</h2>
+    ${!userId ? `<div class="form-group"><label>Аккаунт ученика</label><select class="form-input" id="cli_user"><option value="">—</option>${studentOpts}</select></div>` : `<p style="color:#64748b">Ученик: <b>${escapeHtml(c.fullName||'')}</b></p>`}
+    <div class="form-group"><label>Полное имя</label><input class="form-input" id="cli_name" value="${escapeHtml(c.fullName||'')}"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Дата рождения</label><input class="form-input" type="date" id="cli_bd" value="${c.birthDate||''}"></div>
+      <div class="form-group"><label>Пол</label>
+        <select class="form-input" id="cli_gender">
+          <option value="">—</option>
+          <option value="m" ${c.gender==='m'?'selected':''}>М</option>
+          <option value="f" ${c.gender==='f'?'selected':''}>Ж</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Филиал</label><select class="form-input" id="cli_branch"><option value="">—</option>${branchOpts}</select></div>
+      <div class="form-group"><label>Тариф</label><select class="form-input" id="cli_tariff"><option value="">—</option>${tariffOpts}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Занятий осталось</label><input class="form-input" type="number" id="cli_visits" value="${c.visitsLeft??0}" min="0"></div>
+      <div class="form-group"><label>Статус</label>
+        <select class="form-input" id="cli_status">
+          <option value="active" ${c.status==='active'?'selected':''}>Активный</option>
+          <option value="frozen" ${c.status==='frozen'?'selected':''}>Заморожен</option>
+          <option value="inactive" ${c.status==='inactive'?'selected':''}>Неактивный</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Ответственный менеджер</label><select class="form-input" id="cli_mgr"><option value="">—</option>${managerOpts}</select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Имя родителя</label><input class="form-input" id="cli_pname" value="${escapeHtml(c.parentName||'')}"></div>
+      <div class="form-group"><label>Телефон родителя</label><input class="form-input" id="cli_pphone" value="${escapeHtml(c.parentPhone||'')}"></div>
+    </div>
+    <div class="form-group"><label>Комментарий</label><textarea class="form-input" id="cli_comment" rows="2">${escapeHtml(c.comment||'')}</textarea></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="cli_video" ${c.videoConsent?'checked':''}>
+      <label for="cli_video" style="margin:0">Согласие на видеозапись</label>
+    </div>
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="saveClient('${userId||''}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function saveClient(userId) {
+  const body = {
+    fullName: document.getElementById('cli_name').value.trim(),
+    birthDate: document.getElementById('cli_bd').value || null,
+    gender: document.getElementById('cli_gender').value || null,
+    branchId: document.getElementById('cli_branch').value || null,
+    tariffId: document.getElementById('cli_tariff').value || null,
+    visitsLeft: parseInt(document.getElementById('cli_visits').value)||0,
+    status: document.getElementById('cli_status').value,
+    responsibleManagerId: document.getElementById('cli_mgr').value || null,
+    parentName: document.getElementById('cli_pname').value.trim() || null,
+    parentPhone: document.getElementById('cli_pphone').value.trim() || null,
+    comment: document.getElementById('cli_comment').value.trim() || null,
+    videoConsent: document.getElementById('cli_video').checked,
+    videoConsentDate: document.getElementById('cli_video').checked ? Date.now() : null,
+  };
+  const err = document.getElementById('modalErr');
+  if (!body.fullName) { err.textContent = 'Введите имя'; return; }
+  try {
+    if (userId) {
+      await API._request('PUT',`/api/students-crm/${userId}`,body);
+    } else {
+      body.userId = document.getElementById('cli_user').value;
+      if (!body.userId) { err.textContent = 'Выберите аккаунт ученика'; return; }
+      await API._request('POST','/api/students-crm',body);
+    }
+    closeModal(); renderClients(); showToast('Сохранено','success');
+  } catch(e) { err.textContent = e.message; }
+}
+
+async function deleteClient(userId) {
+  if (!confirm('Удалить карточку клиента?')) return;
+  try { await API._request('DELETE',`/api/students-crm/${userId}`); renderClients(); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+// ─── PERMISSIONS ───────────────────────────────────────────
+const renderPermissions = crmWrap(function() {
+  const teachers = cache.users.filter(u=>u.role==='teacher'||u.role==='assistant');
+  document.getElementById('tab').innerHTML = `
+    <h1>Права учителей</h1>
+    <p style="color:#64748b;margin-bottom:20px">Настройте гибкие права доступа для каждого учителя.</p>
+    <table class="table">
+      <thead><tr><th>Учитель</th><th>Роль</th><th>Управление</th></tr></thead>
+      <tbody>
+        ${teachers.length ? teachers.map(u=>`
+          <tr>
+            <td><b>${escapeHtml(u.name)}</b></td>
+            <td><span class="badge">${u.role}</span></td>
+            <td><button class="btn btn-ghost" onclick="openPermissionForm('${u.id}','${escapeHtml(u.name)}')">🔑 Настроить</button></td>
+          </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:#64748b;padding:24px">Учителей нет</td></tr>'}
+      </tbody>
+    </table>`;
+});
+
+const PERMISSION_KEYS = [
+  { key:'can_edit_materials',    label:'Редактировать материалы' },
+  { key:'can_see_crm',           label:'Видеть CRM-данные учеников' },
+  { key:'can_see_subscriptions', label:'Видеть остатки абонементов' },
+  { key:'can_create_modules',    label:'Создавать модули/задачи' },
+  { key:'can_export',            label:'Экспортировать данные' },
+];
+
+async function openPermissionForm(teacherId, teacherName) {
+  let perms = {};
+  try {
+    const rows = await API._request('GET',`/api/teacher-permissions/${teacherId}`);
+    perms = Object.fromEntries(rows.map(r=>[r.key, r.value]));
+  } catch { perms = {}; }
+
+  document.getElementById('modalContent').innerHTML = `
+    <h2>Права: ${escapeHtml(teacherName)}</h2>
+    ${PERMISSION_KEYS.map(p=>`
+      <div class="form-group" style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="perm_${p.key}" ${perms[p.key]?'checked':''}>
+        <label for="perm_${p.key}" style="margin:0">${p.label}</label>
+      </div>`).join('')}
+    <div id="modalErr" style="color:#ef4444;font-weight:700;min-height:18px"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="savePermissions('${teacherId}')">Сохранить</button>
+      <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+    </div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+async function savePermissions(teacherId) {
+  const permissions = {};
+  PERMISSION_KEYS.forEach(p => { permissions[p.key] = document.getElementById(`perm_${p.key}`).checked; });
+  const err = document.getElementById('modalErr');
+  try {
+    await API._request('PUT',`/api/teacher-permissions/${teacherId}`,{ permissions });
+    closeModal(); showToast('Права сохранены','success');
+  } catch(e) { err.textContent = e.message; }
+}
+</script>
